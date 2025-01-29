@@ -1,0 +1,11 @@
+## Teamwork Agreement
+- Communicate using Discord, expect response within 1-2 days
+- No preference for meeting in-person or online
+- Try to get work done early unless we both have many assignment deadlines coming up
+- No expected weekly meetings outside of lab
+- Open up a pull request whenever a designated milestone/task is completed
+- List of Hard Deadlines for Both
+  - Feb. 10, 12, 13, 24, 26
+  - Mar. 3, 7, 21, 25
+  - Apr. 2, 4
+- Set aside allocated time each week (e.g. 6 hours/week) to enable some flexibility with our schedules and hard deadlines
