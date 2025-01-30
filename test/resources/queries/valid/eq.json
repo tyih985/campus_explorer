@@ -1,0 +1,39 @@
+{
+  "title": "SELECT dept, fail WHERE fail = 100",
+  "input": {
+    "WHERE": {
+      "EQ": {
+        "sections_fail": 100
+      }
+    },
+    "OPTIONS": {
+      "COLUMNS": [
+        "sections_dept",
+        "sections_fail"
+      ]
+    }
+  },
+  "errorExpected": false,
+  "expected": [
+    {
+      "sections_dept": "comm",
+      "sections_fail": 100
+    },
+    {
+      "sections_dept": "math",
+      "sections_fail": 100
+    },
+    {
+      "sections_dept": "math",
+      "sections_fail": 100
+    },
+    {
+      "sections_dept": "math",
+      "sections_fail": 100
+    },
+    {
+      "sections_dept": "math",
+      "sections_fail": 100
+    }
+  ]
+}

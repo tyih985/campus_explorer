@@ -1,0 +1,35 @@
+{
+  "title": "SELECT dept, id, audit WHERE audit > 20",
+  "input": {
+    "WHERE": {
+      "GT": {
+        "sections_audit": 20
+      }
+    },
+    "OPTIONS": {
+      "COLUMNS": [
+        "sections_dept",
+        "sections_id",
+        "sections_audit"
+      ]
+    }
+  },
+  "errorExpected": false,
+  "expected": [
+    {
+      "sections_dept": "cpsc",
+      "sections_id": "540",
+      "sections_audit": 21
+    },
+    {
+      "sections_dept": "rhsc",
+      "sections_id": "501",
+      "sections_audit": 23
+    },
+    {
+      "sections_dept": "rhsc",
+      "sections_id": "501",
+      "sections_audit": 21
+    }
+  ]
+}

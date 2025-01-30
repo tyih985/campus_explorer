@@ -1,0 +1,17 @@
+{
+  "title": "Query where inputstring is invalid",
+  "input": {
+    "WHERE": {
+      "IS": {
+        "sections_dept": "c**c"
+      }
+    },
+    "OPTIONS": {
+      "COLUMNS": [
+        "sections_dept"
+      ]
+    }
+  },
+  "errorExpected": true,
+  "expected": "InsightError"
+}

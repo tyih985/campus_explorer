@@ -1,0 +1,9 @@
+{
+  "title": "Query with invalid WHERE",
+  "input": {
+    "WHERE": [],
+    "OPTIONS": {}
+  },
+  "errorExpected": true,
+  "expected": "InsightError"
+}

@@ -1,0 +1,18 @@
+{
+  "title": "Query with wrong keytype in comparator",
+  "input": {
+    "WHERE": {
+      "GT": {
+        "sections_instructor": "bob"
+      }
+    },
+    "OPTIONS": {
+      "COLUMNS": [
+        "sections_dept"
+      ]
+
+    }
+  },
+  "errorExpected": true,
+  "expected": "InsightError"
+}
