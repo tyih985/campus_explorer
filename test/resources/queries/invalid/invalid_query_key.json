@@ -1,0 +1,17 @@
+{
+  "title": "Query where keys are invalid",
+  "input": {
+    "WHERE": {
+      "IS": {
+        "sections_dept": "cpsc"
+      }
+    },
+    "OPTIONS": {
+      "COLUMNS": [
+        "sections_abc", "sections_dept"
+      ]
+    }
+  },
+  "errorExpected": true,
+  "expected": "InsightError"
+}

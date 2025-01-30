@@ -1,0 +1,51 @@
+{
+  "title": "SELECT instructor, dept, id WHERE instructor ends with greg ORDER by dept",
+  "input": {
+    "WHERE": {
+      "IS": {
+        "sections_instructor": "*greg"
+      }
+    },
+    "OPTIONS": {
+      "COLUMNS": [
+        "sections_instructor",
+        "sections_dept",
+        "sections_id"
+      ],
+      "ORDER": "sections_dept"
+    }
+  },
+  "errorExpected": false,
+  "expected": [
+    {
+      "sections_instructor": "kozak, greg",
+      "sections_dept": "arst",
+      "sections_id": "573"
+    },
+    {
+      "sections_instructor": "kozak, greg",
+      "sections_dept": "arst",
+      "sections_id": "573"
+    },
+    {
+      "sections_instructor": "kozak, greg",
+      "sections_dept": "arst",
+      "sections_id": "565"
+    },
+    {
+      "sections_instructor": "kozak, greg",
+      "sections_dept": "arst",
+      "sections_id": "565"
+    },
+    {
+      "sections_instructor": "kozak, greg",
+      "sections_dept": "arst",
+      "sections_id": "565"
+    },
+    {
+      "sections_instructor": "giustini, dean;rowell, greg",
+      "sections_dept": "libr",
+      "sections_id": "534"
+    }
+  ]
+}
