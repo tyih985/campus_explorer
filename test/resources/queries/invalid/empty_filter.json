@@ -1,0 +1,29 @@
+{
+  "title": "Query where AND is empty",
+  "input": {
+    "WHERE": {
+      "NOT": {
+        "OR": [
+          {
+            "AND": [
+
+            ]
+          },
+          {
+            "IS": {
+              "sections_dept": "biol"
+            }
+          }
+        ]
+      }
+    },
+    "OPTIONS": {
+      "COLUMNS": [
+        "sections_dept"
+      ]
+    }
+  },
+  "errorExpected": true,
+  "expected": "InsightError"
+
+}

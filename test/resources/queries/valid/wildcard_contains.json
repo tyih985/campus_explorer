@@ -1,0 +1,83 @@
+{
+  "title": "SELECT dept, uuid WHERE uuid contains 1234",
+  "input": {
+    "WHERE": {
+      "IS": {
+        "sections_uuid": "*1234*"
+      }
+    },
+    "OPTIONS": {
+      "COLUMNS": [
+        "sections_dept",
+        "sections_uuid"
+      ]
+    }
+  },
+  "errorExpected": false,
+  "expected": [
+    {
+      "sections_dept": "arch",
+      "sections_uuid": "11234"
+    },
+    {
+      "sections_dept": "chem",
+      "sections_uuid": "31234"
+    },
+    {
+      "sections_dept": "comm",
+      "sections_uuid": "71234"
+    },
+    {
+      "sections_dept": "cpen",
+      "sections_uuid": "81234"
+    },
+    {
+      "sections_dept": "frst",
+      "sections_uuid": "21234"
+    },
+    {
+      "sections_dept": "japn",
+      "sections_uuid": "12340"
+    },
+    {
+      "sections_dept": "japn",
+      "sections_uuid": "12341"
+    },
+    {
+      "sections_dept": "japn",
+      "sections_uuid": "12342"
+    },
+    {
+      "sections_dept": "japn",
+      "sections_uuid": "12343"
+    },
+    {
+      "sections_dept": "japn",
+      "sections_uuid": "12344"
+    },
+    {
+      "sections_dept": "japn",
+      "sections_uuid": "12345"
+    },
+    {
+      "sections_dept": "japn",
+      "sections_uuid": "12346"
+    },
+    {
+      "sections_dept": "japn",
+      "sections_uuid": "12347"
+    },
+    {
+      "sections_dept": "japn",
+      "sections_uuid": "12348"
+    },
+    {
+      "sections_dept": "japn",
+      "sections_uuid": "12349"
+    },
+    {
+      "sections_dept": "phys",
+      "sections_uuid": "41234"
+    }
+  ]
+}

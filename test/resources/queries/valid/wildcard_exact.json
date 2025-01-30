@@ -1,0 +1,59 @@
+{
+  "title": "SELECT dept, course WHERE course is 695",
+  "input": {
+    "WHERE": {
+      "IS": {
+        "sections_id": "695"
+      }
+    },
+    "OPTIONS": {
+      "COLUMNS": [
+        "sections_dept",
+        "sections_id"
+      ]
+    }
+  },
+  "errorExpected": false,
+  "expected": [
+    {
+      "sections_dept": "comm",
+      "sections_id": "695"
+    },
+    {
+      "sections_dept": "comm",
+      "sections_id": "695"
+    },
+    {
+      "sections_dept": "comm",
+      "sections_id": "695"
+    },
+    {
+      "sections_dept": "comm",
+      "sections_id": "695"
+    },
+    {
+      "sections_dept": "comm",
+      "sections_id": "695"
+    },
+    {
+      "sections_dept": "comm",
+      "sections_id": "695"
+    },
+    {
+      "sections_dept": "comm",
+      "sections_id": "695"
+    },
+    {
+      "sections_dept": "comm",
+      "sections_id": "695"
+    },
+    {
+      "sections_dept": "comm",
+      "sections_id": "695"
+    },
+    {
+      "sections_dept": "comm",
+      "sections_id": "695"
+    }
+  ]
+}

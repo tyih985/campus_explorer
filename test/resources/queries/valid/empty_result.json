@@ -1,0 +1,20 @@
+{
+  "title": "SELECT title, avg WHERE avg is not > -1",
+  "input": {
+    "WHERE": {
+      "NOT": {
+        "GT": {
+          "sections_avg": -1
+        }
+      }
+    },
+    "OPTIONS": {
+      "COLUMNS": [
+        "sections_title",
+        "sections_avg"
+      ]
+    }
+  },
+  "errorExpected": false,
+  "expected": []
+}
