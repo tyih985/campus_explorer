@@ -1,0 +1,35 @@
+{
+  "title": "SELECT dept, id WHERE dept is *nb",
+  "input": {
+    "WHERE": {
+      "IS": {
+        "sections_dept": "*nb"
+      }
+    },
+    "OPTIONS": {
+      "COLUMNS": [
+        "sections_dept",
+        "sections_id"
+      ]
+    }
+  },
+  "errorExpected": false,
+  "expected": [
+    {
+      "sections_dept": "aanb",
+      "sections_id": "504"
+    },
+    {
+      "sections_dept": "aanb",
+      "sections_id": "504"
+    },
+    {
+      "sections_dept": "aanb",
+      "sections_id": "551"
+    },
+    {
+      "sections_dept": "aanb",
+      "sections_id": "551"
+    }
+  ]
+}
