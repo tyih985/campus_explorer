@@ -1,0 +1,300 @@
+{
+  "title": "SELECT title, avg WHERE avg > 90 OR dept is biol",
+  "input": {
+    "WHERE": {
+      "OR": [
+        {
+          "GT": {
+            "sections_avg": 99
+          }
+        },
+        {
+          "IS": {
+            "sections_title": "asia*"
+          }
+        }
+      ]
+    },
+    "OPTIONS": {
+      "COLUMNS": [
+        "sections_title",
+        "sections_avg"
+      ]
+    }
+  },
+  "errorExpected": false,
+  "expected": [
+    {
+      "sections_title": "asian art",
+      "sections_avg": 72.42
+    },
+    {
+      "sections_title": "asian art",
+      "sections_avg": 72.42
+    },
+    {
+      "sections_title": "asian art",
+      "sections_avg": 72.03
+    },
+    {
+      "sections_title": "asian art",
+      "sections_avg": 72.03
+    },
+    {
+      "sections_title": "asian art",
+      "sections_avg": 73.78
+    },
+    {
+      "sections_title": "asian art",
+      "sections_avg": 73.78
+    },
+    {
+      "sections_title": "asian art",
+      "sections_avg": 71.95
+    },
+    {
+      "sections_title": "asian art",
+      "sections_avg": 71.95
+    },
+    {
+      "sections_title": "asian art",
+      "sections_avg": 73.02
+    },
+    {
+      "sections_title": "asian art",
+      "sections_avg": 73.02
+    },
+    {
+      "sections_title": "asian art",
+      "sections_avg": 77.26
+    },
+    {
+      "sections_title": "asian art",
+      "sections_avg": 77.26
+    },
+    {
+      "sections_title": "asian art",
+      "sections_avg": 78
+    },
+    {
+      "sections_title": "asian art",
+      "sections_avg": 78
+    },
+    {
+      "sections_title": "asian arts",
+      "sections_avg": 72.78
+    },
+    {
+      "sections_title": "asian arts",
+      "sections_avg": 72.78
+    },
+    {
+      "sections_title": "asian horr cinem",
+      "sections_avg": 70.48
+    },
+    {
+      "sections_title": "asian horr cinem",
+      "sections_avg": 70.48
+    },
+    {
+      "sections_title": "asian horr cinem",
+      "sections_avg": 78.58
+    },
+    {
+      "sections_title": "asian horr cinem",
+      "sections_avg": 78.58
+    },
+    {
+      "sections_title": "asian folklore",
+      "sections_avg": 78.97
+    },
+    {
+      "sections_title": "asian folklore",
+      "sections_avg": 78.97
+    },
+    {
+      "sections_title": "asian folklore",
+      "sections_avg": 75.86
+    },
+    {
+      "sections_title": "asian folklore",
+      "sections_avg": 75.86
+    },
+    {
+      "sections_title": "asian folklore",
+      "sections_avg": 72.84
+    },
+    {
+      "sections_title": "asian folklore",
+      "sections_avg": 72.84
+    },
+    {
+      "sections_title": "asian folklore",
+      "sections_avg": 79.44
+    },
+    {
+      "sections_title": "asian folklore",
+      "sections_avg": 79.44
+    },
+    {
+      "sections_title": "asian folklore",
+      "sections_avg": 76.22
+    },
+    {
+      "sections_title": "asian folklore",
+      "sections_avg": 76.22
+    },
+    {
+      "sections_title": "asian folklore",
+      "sections_avg": 77.4
+    },
+    {
+      "sections_title": "asian folklore",
+      "sections_avg": 77.4
+    },
+    {
+      "sections_title": "career planning",
+      "sections_avg": 99.19
+    },
+    {
+      "sections_title": "asian & aust cin",
+      "sections_avg": 77.52
+    },
+    {
+      "sections_title": "asian & aust cin",
+      "sections_avg": 77.52
+    },
+    {
+      "sections_title": "asian & aust cin",
+      "sections_avg": 80.06
+    },
+    {
+      "sections_title": "asian & aust cin",
+      "sections_avg": 80.06
+    },
+    {
+      "sections_title": "asian & aust cin",
+      "sections_avg": 78.29
+    },
+    {
+      "sections_title": "asian & aust cin",
+      "sections_avg": 78.29
+    },
+    {
+      "sections_title": "asian & aust cin",
+      "sections_avg": 78.29
+    },
+    {
+      "sections_title": "asian & aust cin",
+      "sections_avg": 78.29
+    },
+    {
+      "sections_title": "asian migr amer",
+      "sections_avg": 80.65
+    },
+    {
+      "sections_title": "asian migr amer",
+      "sections_avg": 80.73
+    },
+    {
+      "sections_title": "asian migr amer",
+      "sections_avg": 80.6
+    },
+    {
+      "sections_title": "asian migr amer",
+      "sections_avg": 82.35
+    },
+    {
+      "sections_title": "asian migr amer",
+      "sections_avg": 81.06
+    },
+    {
+      "sections_title": "asian migr amer",
+      "sections_avg": 73.68
+    },
+    {
+      "sections_title": "asian migr amer",
+      "sections_avg": 73.68
+    },
+    {
+      "sections_title": "asian migr amer",
+      "sections_avg": 80.31
+    },
+    {
+      "sections_title": "asian migr amer",
+      "sections_avg": 80.31
+    },
+    {
+      "sections_title": "asian migr amer",
+      "sections_avg": 81.13
+    },
+    {
+      "sections_title": "asian migr amer",
+      "sections_avg": 81.35
+    },
+    {
+      "sections_title": "asian migr amer",
+      "sections_avg": 76
+    },
+    {
+      "sections_title": "asian migr amer",
+      "sections_avg": 76
+    },
+    {
+      "sections_title": "asian migr van",
+      "sections_avg": 81.29
+    },
+    {
+      "sections_title": "asian migr van",
+      "sections_avg": 81.29
+    },
+    {
+      "sections_title": "asian migr van",
+      "sections_avg": 82.35
+    },
+    {
+      "sections_title": "asian migr van",
+      "sections_avg": 82.8
+    },
+    {
+      "sections_title": "asian migr van",
+      "sections_avg": 82.42
+    },
+    {
+      "sections_title": "asian migr van",
+      "sections_avg": 82.42
+    },
+    {
+      "sections_title": "asian migr van",
+      "sections_avg": 79.13
+    },
+    {
+      "sections_title": "asian migr van",
+      "sections_avg": 79.13
+    },
+    {
+      "sections_title": "asian migr van",
+      "sections_avg": 81.74
+    },
+    {
+      "sections_title": "asian migr van",
+      "sections_avg": 81.74
+    },
+    {
+      "sections_title": "asian migr van",
+      "sections_avg": 85.09
+    },
+    {
+      "sections_title": "asian migr van",
+      "sections_avg": 85.09
+    },
+    {
+      "sections_title": "algb topology i",
+      "sections_avg": 99.78
+    },
+    {
+      "sections_title": "algb topology i",
+      "sections_avg": 99.78
+    }
+  ]
+}

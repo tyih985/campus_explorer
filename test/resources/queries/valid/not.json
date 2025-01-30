@@ -1,0 +1,189 @@
+{
+  "title": "SELECT title, avg WHERE avg NOT > 50",
+  "input": {
+    "WHERE": {
+      "NOT": {
+        "GT": {
+          "sections_avg": 50
+        }
+      }
+    },
+    "OPTIONS": {
+      "COLUMNS": [
+        "sections_title",
+        "sections_avg"
+      ]
+    }
+  },
+  "errorExpected": false,
+  "expected": [
+    {
+      "sections_title": "found re apprai",
+      "sections_avg": 4
+    },
+    {
+      "sections_title": "found re apprai",
+      "sections_avg": 4
+    },
+    {
+      "sections_title": "stat&comp ap val",
+      "sections_avg": 49.47
+    },
+    {
+      "sections_title": "stat&comp ap val",
+      "sections_avg": 49.47
+    },
+    {
+      "sections_title": "resdnt prp study",
+      "sections_avg": 49.17
+    },
+    {
+      "sections_title": "resdnt prp study",
+      "sections_avg": 42.64
+    },
+    {
+      "sections_title": "resdnt prp study",
+      "sections_avg": 42.64
+    },
+    {
+      "sections_title": "rl es manage i",
+      "sections_avg": 50
+    },
+    {
+      "sections_title": "cpt aid ms pr as",
+      "sections_avg": 46.5
+    },
+    {
+      "sections_title": "re crit analysis",
+      "sections_avg": 46.95
+    },
+    {
+      "sections_title": "proc ctrl eng",
+      "sections_avg": 50
+    },
+    {
+      "sections_title": "electrochem eng",
+      "sections_avg": 42
+    },
+    {
+      "sections_title": "electrochem eng",
+      "sections_avg": 44.88
+    },
+    {
+      "sections_title": "chem integ lab i",
+      "sections_avg": 42.5
+    },
+    {
+      "sections_title": "engr econ anlys",
+      "sections_avg": 33
+    },
+    {
+      "sections_title": "wtr treat&wst mg",
+      "sections_avg": 49.25
+    },
+    {
+      "sections_title": "financial acctng",
+      "sections_avg": 46.71
+    },
+    {
+      "sections_title": "financial acctng",
+      "sections_avg": 49.07
+    },
+    {
+      "sections_title": "language & curr",
+      "sections_avg": 39.03
+    },
+    {
+      "sections_title": "language & curr",
+      "sections_avg": 39.03
+    },
+    {
+      "sections_title": "sustnbt&frst ops",
+      "sections_avg": 4.5
+    },
+    {
+      "sections_title": "forest ecology",
+      "sections_avg": 0
+    },
+    {
+      "sections_title": "intr biometrics",
+      "sections_avg": 46.59
+    },
+    {
+      "sections_title": "intr biometrics",
+      "sections_avg": 49.14
+    },
+    {
+      "sections_title": "hist 1500 - 20 c",
+      "sections_avg": 34
+    },
+    {
+      "sections_title": "hist 1500 - 20 c",
+      "sections_avg": 49.15
+    },
+    {
+      "sections_title": "hist 1500 - 20 c",
+      "sections_avg": 47.13
+    },
+    {
+      "sections_title": "hist 1500 - 20 c",
+      "sections_avg": 46.33
+    },
+    {
+      "sections_title": "hist 1500 - 20 c",
+      "sections_avg": 46.33
+    },
+    {
+      "sections_title": "in land food com",
+      "sections_avg": 0
+    },
+    {
+      "sections_title": "in land food com",
+      "sections_avg": 0
+    },
+    {
+      "sections_title": "intro acad writ",
+      "sections_avg": 48.9
+    },
+    {
+      "sections_title": "intro acad writ",
+      "sections_avg": 49.73
+    },
+    {
+      "sections_title": "intro acad writ",
+      "sections_avg": 49.86
+    },
+    {
+      "sections_title": "intro acad writ",
+      "sections_avg": 47.29
+    },
+    {
+      "sections_title": "intro acad writ",
+      "sections_avg": 47.82
+    },
+    {
+      "sections_title": "dif calc phys ap",
+      "sections_avg": 46.52
+    },
+    {
+      "sections_title": "dif calc phys ap",
+      "sections_avg": 49.95
+    },
+    {
+      "sections_title": "log & crit think",
+      "sections_avg": 33.2
+    },
+    {
+      "sections_title": "health psycholgy",
+      "sections_avg": 43.33
+    },
+    {
+      "sections_title": "childhood & adol",
+      "sections_avg": 50
+    },
+    {
+      "sections_title": "prpty,ident&uses",
+      "sections_avg": 1
+    }
+  ]
+}
