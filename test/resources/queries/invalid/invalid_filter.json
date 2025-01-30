@@ -1,0 +1,19 @@
+{
+  "title": "Query with invalid filter",
+  "input": {
+    "WHERE": {
+      "INVALID": {
+        "IS": {
+          "sections_dept": "c*"
+        }
+      }
+    },
+    "OPTIONS": {
+      "COLUMNS": [
+        "sections_dept", "sections_pass"
+      ]
+    }
+  },
+  "errorExpected": true,
+  "expected": "InsightError"
+}

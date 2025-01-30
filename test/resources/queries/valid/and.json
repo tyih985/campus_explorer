@@ -1,0 +1,132 @@
+{
+  "title": "SELECT avg WHERE avg > 90 AND dept is biol",
+  "input": {
+    "WHERE": {
+      "AND": [
+        {
+          "GT": {
+            "sections_avg": 90
+          }
+        },
+        {
+          "IS": {
+            "sections_dept": "biol"
+          }
+        }
+      ]
+    },
+    "OPTIONS": {
+      "COLUMNS": [
+        "sections_title",
+        "sections_avg"
+      ]
+    }
+  },
+  "errorExpected": false,
+  "expected": [
+    {
+      "sections_title": "prin&meth rsch i",
+      "sections_avg": 92.19
+    },
+    {
+      "sections_title": "prin&meth rsch i",
+      "sections_avg": 92.19
+    },
+    {
+      "sections_title": "prin&meth rsch i",
+      "sections_avg": 90.48
+    },
+    {
+      "sections_title": "prin&meth rsch i",
+      "sections_avg": 90.48
+    },
+    {
+      "sections_title": "plant genomics",
+      "sections_avg": 91.21
+    },
+    {
+      "sections_title": "plant genomics",
+      "sections_avg": 91.21
+    },
+    {
+      "sections_title": "biology research",
+      "sections_avg": 90.92
+    },
+    {
+      "sections_title": "biology research",
+      "sections_avg": 90.92
+    },
+    {
+      "sections_title": "biology research",
+      "sections_avg": 92
+    },
+    {
+      "sections_title": "biology research",
+      "sections_avg": 92
+    },
+    {
+      "sections_title": "biology research",
+      "sections_avg": 92.1
+    },
+    {
+      "sections_title": "biology research",
+      "sections_avg": 92.1
+    },
+    {
+      "sections_title": "biology research",
+      "sections_avg": 90.17
+    },
+    {
+      "sections_title": "biology research",
+      "sections_avg": 90.17
+    },
+    {
+      "sections_title": "biology research",
+      "sections_avg": 90.42
+    },
+    {
+      "sections_title": "biology research",
+      "sections_avg": 90.42
+    },
+    {
+      "sections_title": "biology research",
+      "sections_avg": 90.42
+    },
+    {
+      "sections_title": "biology research",
+      "sections_avg": 90.42
+    },
+    {
+      "sections_title": "ecolg plant bioc",
+      "sections_avg": 90.74
+    },
+    {
+      "sections_title": "ecolg plant bioc",
+      "sections_avg": 90.74
+    },
+    {
+      "sections_title": "ecolg plant bioc",
+      "sections_avg": 90.63
+    },
+    {
+      "sections_title": "ecolg plant bioc",
+      "sections_avg": 90.63
+    },
+    {
+      "sections_title": "ecolg plant bioc",
+      "sections_avg": 94.33
+    },
+    {
+      "sections_title": "ecolg plant bioc",
+      "sections_avg": 94.33
+    },
+    {
+      "sections_title": "animal dvl gntcs",
+      "sections_avg": 92.36
+    },
+    {
+      "sections_title": "animal dvl gntcs",
+      "sections_avg": 92.36
+    }
+  ]
+}
