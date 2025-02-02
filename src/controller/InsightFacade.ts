@@ -1,21 +1,59 @@
-import { IInsightFacade, InsightDataset, InsightDatasetKind, InsightResult } from "./IInsightFacade";
+import {
+	IInsightFacade,
+	InsightDataset,
+	InsightDatasetKind,
+	InsightError,
+	InsightResult,
+	NotFoundError,
+} from "./IInsightFacade";
+import { Dataset, DatasetProcessor } from "./DatasetProcessor";
 
 /**
  * This is the main programmatic entry point for the project.
  * Method documentation is in IInsightFacade
  *
  */
+
+function isValidIdstring(id: string): boolean {
+	if (id.includes("_") || id.trim().length === 0) {
+		throw new InsightError("Given idstring is invalid.");
+	}
+	return true;
+}
+
+function isBase64(str: string): boolean {
+	try {
+		return Buffer.from(str, "base64").toString("base64") === str.replace(/\r?\n|\r/g, "");
+	} catch {
+		return false;
+	}
+}
+
 export default class InsightFacade implements IInsightFacade {
+	private datasetProcessor: DatasetProcessor = new DatasetProcessor();
+
 	public async addDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
-		// TODO: Remove this once you implement the methods!
-		throw new Error(
-			`InsightFacadeImpl::addDataset() is unimplemented! - id=${id}; content=${content?.length}; kind=${kind}`
-		);
+		isValidIdstring(id);
+		if (!isBase64(content)) {
+			throw new InsightError("Given content string is not in base 64.");
+		}
+		const sections = await this.datasetProcessor.parseFiles(content);
+		if (sections.length === 0) {
+			throw new InsightError("No valid sections found.");
+		}
+		const dataset = new Dataset(id, sections, kind);
+		await dataset.saveDataset();
+
+		return this.datasetProcessor.addDataset(dataset);
 	}
 
 	public async removeDataset(id: string): Promise<string> {
-		// TODO: Remove this once you implement the methods!
-		throw new Error(`InsightFacadeImpl::removeDataset() is unimplemented! - id=${id};`);
+		isValidIdstring(id);
+		if (this.datasetProcessor.hasDataset(id)) {
+			return await this.datasetProcessor.removeDataset(id);
+		} else {
+			throw new NotFoundError("Dataset with given idstring not found.");
+		}
 	}
 
 	public async performQuery(query: unknown): Promise<InsightResult[]> {
@@ -24,7 +62,6 @@ export default class InsightFacade implements IInsightFacade {
 	}
 
 	public async listDatasets(): Promise<InsightDataset[]> {
-		// TODO: Remove this once you implement the methods!
-		throw new Error(`InsightFacadeImpl::listDatasets is unimplemented!`);
+		return this.datasetProcessor.listDatasets();
 	}
 }
