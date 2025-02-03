@@ -50,8 +50,8 @@ export class Dataset {
 	public numRows: number;
 	public readonly sections: Section[];
 
-	constructor(idstring: string, sections: Section[], kind: InsightDatasetKind) {
-		this.id = idstring;
+	constructor(idString: string, sections: Section[], kind: InsightDatasetKind) {
+		this.id = idString;
 		this.sections = sections;
 		this.kind = kind;
 		this.numRows = sections.length;
@@ -100,13 +100,13 @@ const folderPath: string = path.resolve(__dirname, "..", "..", "data");
 
 export class DatasetProcessor {
 	private datasets: Dataset[] = [];
-	private idstrings: string[] = [];
+	private idStrings: string[] = [];
 	private setupDone: boolean = false;
 
 	private async setup(): Promise<void> {
 		try {
 			const datasetFiles = await this.getDataFiles();
-			this.idstrings = datasetFiles.map((file) => path.basename(file, path.extname(file)));
+			this.idStrings = datasetFiles.map((file) => path.basename(file, path.extname(file)));
 			this.datasets = await this.getAllDatasets(datasetFiles);
 			this.setupDone = true;
 		} catch (_err) {}
@@ -136,26 +136,37 @@ export class DatasetProcessor {
 			});
 
 			const result = (await Promise.all(filePromises)).filter(Boolean);
-			return this.validateSections(result.flat());
+			return this.filterForValidSections(result.flat());
 		} catch (_err) {
 			throw new InsightError("Invalid zip file given.");
 		}
 	}
 
-	private validateSections(json: Record<string, any>[]): Section[] {
+	private filterForValidSections(json: Record<string, any>[]): Section[] {
 		const result = [];
 		for (const item of json) {
 			if (this.hasRequiredQueryKeys(item)) {
-				result.push(new Section(item));
+				const filtered = this.filterForRequiredQueryKeys(item);
+				result.push(new Section(filtered));
 			}
 		}
-
 		return result;
 	}
 
 	private hasRequiredQueryKeys(json: Record<string, unknown>): boolean {
 		const requiredKeys = ["id", "Course", "Title", "Professor", "Subject", "Year", "Avg", "Pass", "Fail", "Audit"];
 		return requiredKeys.every((key) => key in json);
+	}
+
+	private filterForRequiredQueryKeys(item: Record<string, any>): Record<string, any> {
+		const requiredKeys = ["id", "Course", "Title", "Professor", "Subject", "Year", "Avg", "Pass", "Fail", "Audit"];
+		const filtered: Record<string, any> = {};
+		for (const key of requiredKeys) {
+			if (key in item) {
+				filtered[key] = item[key];
+			}
+		}
+		return filtered;
 	}
 
 	private async getAllDatasets(files: string[]): Promise<Dataset[]> {
@@ -187,13 +198,13 @@ export class DatasetProcessor {
 	}
 
 	public hasDataset(id: string): boolean {
-		return this.idstrings.includes(id);
+		return this.idStrings.includes(id);
 	}
 
 	public addDataset(dataset: Dataset): string[] {
 		this.datasets.push(dataset);
-		this.idstrings.push(dataset.id);
-		return this.idstrings;
+		this.idStrings.push(dataset.id);
+		return this.idStrings;
 	}
 
 	public async removeDataset(id: string): Promise<string> {
@@ -204,7 +215,7 @@ export class DatasetProcessor {
 			}
 		});
 		this.datasets = this.datasets.filter((dataset) => dataset.id !== id);
-		this.idstrings = this.idstrings.filter((str) => str !== id);
+		this.idStrings = this.idStrings.filter((str) => str !== id);
 		return id;
 	}
 
