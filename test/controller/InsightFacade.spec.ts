@@ -28,16 +28,20 @@ describe("InsightFacade", function () {
 	let sections: string;
 	let noSections: string;
 	let noCoursesFolder: string;
-	let simpleSections: string;
-	let otherSimpleSections: string;
+	let simpleSections1: string;
+	let simpleSections2: string;
+	let simpleSections3: string;
+	let simpleSections4: string;
 
 	before(async function () {
 		// This block runs once and loads the datasets.
 		sections = await getContentFromArchives("pair.zip");
 		noSections = await getContentFromArchives("noSections.zip");
 		noCoursesFolder = await getContentFromArchives("noCoursesFolder.zip");
-		simpleSections = await getContentFromArchives("simpleSections.zip");
-		otherSimpleSections = await getContentFromArchives("otherSimpleSections.zip");
+		simpleSections1 = await getContentFromArchives("simpleSections1.zip");
+		simpleSections2 = await getContentFromArchives("simpleSections2.zip");
+		simpleSections3 = await getContentFromArchives("simpleSections3.zip");
+		simpleSections4 = await getContentFromArchives("simpleSections4.zip");
 
 		// Just in case there is anything hanging around from a previous run of the test suite
 		await clearDisk();
@@ -49,7 +53,7 @@ describe("InsightFacade", function () {
 			facade = new InsightFacade();
 		});
 
-		it("should reject with  an empty dataset id", async function () {
+		it("should reject with an empty dataset id", async function () {
 			// Read the "Free Mutant Walkthrough" in the spec for tips on how to get started!
 			try {
 				await facade.addDataset("", sections, InsightDatasetKind.Sections);
@@ -79,7 +83,7 @@ describe("InsightFacade", function () {
 
 		it("should pass with valid idstring", async function () {
 			try {
-				const result = await facade.addDataset("a", simpleSections, InsightDatasetKind.Sections);
+				const result = await facade.addDataset("a", simpleSections1, InsightDatasetKind.Sections);
 				expect(result).to.have.members(["a"]);
 			} catch (err) {
 				expect.fail(`addDataset threw unexpected error: ${err}`);
@@ -88,8 +92,8 @@ describe("InsightFacade", function () {
 
 		it("should reject with id of existing dataset", async function () {
 			try {
-				await facade.addDataset("sections", simpleSections, InsightDatasetKind.Sections);
-				await facade.addDataset("sections", otherSimpleSections, InsightDatasetKind.Sections);
+				await facade.addDataset("sections", simpleSections1, InsightDatasetKind.Sections);
+				await facade.addDataset("sections", simpleSections2, InsightDatasetKind.Sections);
 				expect.fail("Error should be thrown!");
 			} catch (err) {
 				expect(err).to.be.an.instanceOf(InsightError);
@@ -98,8 +102,8 @@ describe("InsightFacade", function () {
 
 		it("should pass with two valid datasets", async function () {
 			try {
-				await facade.addDataset("abc", simpleSections, InsightDatasetKind.Sections);
-				const result = await facade.addDataset("123", otherSimpleSections, InsightDatasetKind.Sections);
+				await facade.addDataset("abc", simpleSections1, InsightDatasetKind.Sections);
+				const result = await facade.addDataset("123", simpleSections2, InsightDatasetKind.Sections);
 				expect(result).to.have.members(["abc", "123"]);
 			} catch (err) {
 				expect.fail(`addDataset threw unexpected error: ${err}`);
@@ -178,7 +182,7 @@ describe("InsightFacade", function () {
 
 		it("should pass with valid idstring of dataset", async function () {
 			try {
-				await facade.addDataset("abc", simpleSections, InsightDatasetKind.Sections);
+				await facade.addDataset("abc", simpleSections1, InsightDatasetKind.Sections);
 				const result = await facade.removeDataset("abc");
 				expect(result).to.equal("abc");
 			} catch (err) {
@@ -188,7 +192,7 @@ describe("InsightFacade", function () {
 
 		it("should reject with repeated deletion attempts of dataset", async function () {
 			try {
-				await facade.addDataset("123", simpleSections, InsightDatasetKind.Sections);
+				await facade.addDataset("123", simpleSections1, InsightDatasetKind.Sections);
 				const result = await facade.removeDataset("123");
 				expect(result).to.equal("123");
 				await facade.removeDataset("123");
@@ -200,8 +204,8 @@ describe("InsightFacade", function () {
 
 		it("should pass with multiple datasets added and removed", async function () {
 			try {
-				await facade.addDataset("abc", simpleSections, InsightDatasetKind.Sections);
-				await facade.addDataset("abc 123", otherSimpleSections, InsightDatasetKind.Sections);
+				await facade.addDataset("abc", simpleSections1, InsightDatasetKind.Sections);
+				await facade.addDataset("abc 123", simpleSections2, InsightDatasetKind.Sections);
 				const firstResult = await facade.removeDataset("abc");
 				const secondResult = await facade.removeDataset("abc 123");
 				expect(firstResult).to.equal("abc");
@@ -218,9 +222,32 @@ describe("InsightFacade", function () {
 			facade = new InsightFacade();
 		});
 
-		it("should return empty with no datasets added", async function () {
-			const result = await facade.listDatasets();
-			expect(result).to.have.members([]);
+		it("should resolve with no datasets", async function () {
+			try {
+				const result = await facade.listDatasets();
+				expect(result).to.have.members([]);
+			} catch (err) {
+				expect.fail(`Unexpected error: ${err}`);
+			}
+		});
+
+		it("should resolve with list of all datasets", async function () {
+			try {
+				const expected1 = { id: "EFGH5678", kind: InsightDatasetKind.Sections, numRows: 2 };
+				const expected2 = { id: "i9j0k", kind: InsightDatasetKind.Sections, numRows: 4 };
+
+				await facade.addDataset("EFGH5678", simpleSections3, InsightDatasetKind.Sections);
+				const list1 = await facade.listDatasets();
+				expect(list1).to.have.length(1);
+				expect(list1).to.deep.include.members([expected1]);
+
+				await facade.addDataset("i9j0k", simpleSections4, InsightDatasetKind.Sections);
+				const list2 = await facade.listDatasets();
+				expect(list2).to.have.length(2);
+				expect(list2).to.deep.include.members([expected1, expected2]);
+			} catch (err) {
+				expect.fail(`Unexpected error: ${err}`);
+			}
 		});
 	});
 
