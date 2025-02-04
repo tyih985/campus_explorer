@@ -16,30 +16,38 @@ export class Section {
 	private readonly audit: number;
 
 	constructor(json: Record<string, any>) {
-		this.id = String(json.id);
-		this.course = String(json.Course);
-		this.title = String(json.Title);
-		this.professor = String(json.Professor);
-		this.department = String(json.Subject);
-		this.year = Number(json.Year);
-		this.average = Number(json.Avg);
-		this.pass = Number(json.Pass);
-		this.fail = Number(json.Fail);
-		this.audit = Number(json.Audit);
+		try {
+			this.id = String(json.id);
+			this.course = String(json.Course);
+			this.title = String(json.Title);
+			this.professor = String(json.Professor);
+			this.department = String(json.Subject);
+			if (json.Year === "overall") {
+				this.year = 1900;
+			} else {
+				this.year = Number(json.Year);
+			}
+			this.average = Number(json.Avg);
+			this.pass = Number(json.Pass);
+			this.fail = Number(json.Fail);
+			this.audit = Number(json.Audit);
+		} catch (err) {
+			throw new InsightError(`Unexpected error thrown: ${err}`);
+		}
 	}
 
 	public formatSection(): Record<string, any> {
 		return {
-			uuid: this.id,
-			id: this.course,
-			title: this.title,
-			instructor: this.professor,
-			dept: this.department,
-			year: this.year,
-			avg: this.average,
-			pass: this.pass,
-			fail: this.fail,
-			audit: this.audit,
+			id: this.id,
+			Course: this.course,
+			Title: this.title,
+			Professor: this.professor,
+			Subject: this.department,
+			Year: this.year,
+			Avg: this.average,
+			Pass: this.pass,
+			Fail: this.fail,
+			Audit: this.audit,
 		};
 	}
 }
@@ -57,7 +65,7 @@ export class Dataset {
 		this.numRows = sections.length;
 	}
 
-	public async saveDataset(): Promise<void> {
+	public async saveDataset(fileName: string): Promise<void> {
 		const sectionsObject = [];
 		for (const s of this.sections) {
 			sectionsObject.push(s.formatSection());
@@ -71,7 +79,7 @@ export class Dataset {
 		};
 
 		const folderPath = path.resolve(__dirname, "..", "..", "data");
-		const filePath = path.join(folderPath, `${this.id}.json`);
+		const filePath = path.join(folderPath, `${fileName}.json`);
 		try {
 			await fs.promises.mkdir(folderPath, { recursive: true });
 
@@ -81,7 +89,7 @@ export class Dataset {
 			} else {
 				throw new InsightError("Dataset with idstring already exists.");
 			}
-		} catch (_err) {
+		} catch {
 			throw new InsightError("Dataset could not be saved.");
 		}
 	}
@@ -90,7 +98,7 @@ export class Dataset {
 		try {
 			await fs.promises.stat(filePath);
 			return false;
-		} catch (_err) {
+		} catch {
 			return true;
 		}
 	}
@@ -100,16 +108,16 @@ const folderPath: string = path.resolve(__dirname, "..", "..", "data");
 
 export class DatasetProcessor {
 	private datasets: Dataset[] = [];
-	private idstrings: string[] = [];
+	private ids: string[] = [];
 	private setupDone: boolean = false;
 
 	private async setup(): Promise<void> {
 		try {
 			const datasetFiles = await this.getDataFiles();
-			this.idstrings = datasetFiles.map((file) => path.basename(file, path.extname(file)));
 			this.datasets = await this.getAllDatasets(datasetFiles);
+			this.ids = await this.getIdstrings();
 			this.setupDone = true;
-		} catch (_err) {}
+		} catch {}
 	}
 
 	private async handleSetup(): Promise<void> {
@@ -130,14 +138,14 @@ export class DatasetProcessor {
 					const fileContent = await data.files[filePath].async("string");
 					const json = JSON.parse(fileContent);
 					return json.result;
-				} catch (_err) {
+				} catch {
 					return null;
 				}
 			});
 
 			const result = (await Promise.all(filePromises)).filter(Boolean);
 			return this.validateSections(result.flat());
-		} catch (_err) {
+		} catch {
 			throw new InsightError("Invalid zip file given.");
 		}
 	}
@@ -145,9 +153,11 @@ export class DatasetProcessor {
 	private validateSections(json: Record<string, any>[]): Section[] {
 		const result = [];
 		for (const item of json) {
-			if (this.hasRequiredQueryKeys(item)) {
-				result.push(new Section(item));
-			}
+			try {
+				if (this.hasRequiredQueryKeys(item)) {
+					result.push(new Section(item));
+				}
+			} catch {}
 		}
 
 		return result;
@@ -178,6 +188,11 @@ export class DatasetProcessor {
 		}
 	}
 
+	private async getIdstrings(): Promise<string[]> {
+		const idstringPromises = this.datasets.map((dataset: Dataset) => dataset.id);
+		return Promise.all(idstringPromises);
+	}
+
 	private async getDataFiles(): Promise<string[]> {
 		try {
 			return await fs.promises.readdir(folderPath);
@@ -187,28 +202,34 @@ export class DatasetProcessor {
 	}
 
 	public hasDataset(id: string): boolean {
-		return this.idstrings.includes(id);
+		return this.ids.includes(id);
+	}
+
+	public getDatasetSize(): number {
+		return this.datasets.length;
 	}
 
 	public addDataset(dataset: Dataset): string[] {
 		this.datasets.push(dataset);
-		this.idstrings.push(dataset.id);
-		return this.idstrings;
+		this.ids.push(dataset.id);
+		return this.ids;
 	}
 
 	public async removeDataset(id: string): Promise<string> {
-		const filePath = path.join(folderPath, `${id}.json`);
+		await this.handleSetup();
+		const filePath = path.join(folderPath, `${this.ids.indexOf(id)}.json`);
 		fs.unlink(filePath, (err) => {
 			if (err) {
 				throw new InsightError("Error removing dataset.");
 			}
 		});
 		this.datasets = this.datasets.filter((dataset) => dataset.id !== id);
-		this.idstrings = this.idstrings.filter((str) => str !== id);
+		this.ids = this.ids.filter((str) => str !== id);
 		return id;
 	}
 
 	public async listDatasets(): Promise<InsightDataset[]> {
+		await this.handleSetup();
 		return this.datasets.map(({ sections, ...rest }) => rest);
 	}
 }
