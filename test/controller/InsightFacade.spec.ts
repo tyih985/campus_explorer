@@ -222,6 +222,55 @@ describe("InsightFacade", function () {
 			const result = await facade.listDatasets();
 			expect(result).to.have.members([]);
 		});
+
+		it("should return result with 1 dataset added", async function () {
+			await facade.addDataset("sections", sections, InsightDatasetKind.Sections);
+			const result = await facade.listDatasets();
+			expect(result).to.deep.equal([
+				{
+					id: "sections",
+					kind: InsightDatasetKind.Sections,
+					numRows: 64612,
+				},
+			]);
+		});
+
+		it("shuold return correct result with 2 datasets added", async function () {
+			await facade.addDataset("abc$", simpleSections, InsightDatasetKind.Sections);
+			await facade.addDataset("test", otherSimpleSections, InsightDatasetKind.Sections);
+			const result = await facade.listDatasets();
+			expect(result).to.deep.members([
+				{
+					id: "abc$",
+					kind: InsightDatasetKind.Sections,
+					numRows: 4,
+				},
+				{
+					id: "hallo",
+					kind: InsightDatasetKind.Sections,
+					numRows: 5,
+				},
+			]);
+		});
+
+		it("should return correct result with another instance of InsightFacade", async function () {
+			await facade.addDataset("dataset 1", simpleSections, InsightDatasetKind.Sections);
+			await facade.addDataset("dataset 2", otherSimpleSections, InsightDatasetKind.Sections);
+			const secondFacade = new InsightFacade();
+			const result = await secondFacade.listDatasets();
+			expect(result).to.deep.members([
+				{
+					id: "dataset 1",
+					kind: InsightDatasetKind.Sections,
+					numRows: 4,
+				},
+				{
+					id: "dataset 2",
+					kind: InsightDatasetKind.Sections,
+					numRows: 5,
+				},
+			]);
+		});
 	});
 
 	describe("PerformQuery", function () {
