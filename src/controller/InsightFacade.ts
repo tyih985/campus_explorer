@@ -6,7 +6,8 @@ import {
 	InsightResult,
 	NotFoundError,
 } from "./IInsightFacade";
-import { Dataset, DatasetProcessor } from "./DatasetProcessor";
+import { DatasetProcessor } from "./DatasetProcessor";
+import { Dataset } from "./Dataset";
 
 /**
  * This is the main programmatic entry point for the project.
@@ -33,7 +34,7 @@ export default class InsightFacade implements IInsightFacade {
 		if (!isBase64(content)) {
 			throw new InsightError("Given content string is not in base 64.");
 		}
-		if (this.datasetProcessor.hasDataset(id)) {
+		if (await this.datasetProcessor.hasDataset(id)) {
 			throw new InsightError("Dataset with given idstring already exists.");
 		}
 
@@ -42,14 +43,14 @@ export default class InsightFacade implements IInsightFacade {
 			throw new InsightError("No valid sections found.");
 		}
 		const dataset = new Dataset(id, sections, kind);
-		await dataset.saveDataset(String(this.datasetProcessor.getDatasetSize()));
+		await dataset.saveDataset(String(await this.datasetProcessor.getNextFileName()));
 
-		return this.datasetProcessor.addDataset(dataset);
+		return await this.datasetProcessor.addDataset();
 	}
 
 	public async removeDataset(id: string): Promise<string> {
 		isValidIdstring(id);
-		if (this.datasetProcessor.hasDataset(id)) {
+		if (await this.datasetProcessor.hasDataset(id)) {
 			return await this.datasetProcessor.removeDataset(id);
 		} else {
 			throw new NotFoundError("Dataset with given idstring not found.");
