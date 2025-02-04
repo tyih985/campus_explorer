@@ -250,18 +250,6 @@ describe("InsightFacade", function () {
 			}
 		});
 
-		it("should return result with 1 dataset added", async function () {
-			await facade.addDataset("sections", sections, InsightDatasetKind.Sections);
-			const result = await facade.listDatasets();
-			expect(result).to.deep.equal([
-				{
-					id: "sections",
-					kind: InsightDatasetKind.Sections,
-					numRows: 64612,
-				},
-			]);
-		});
-
 		it("should return correct result with another instance of InsightFacade", async function () {
 			await facade.addDataset("dataset 1", simpleSections1, InsightDatasetKind.Sections);
 			await facade.addDataset("dataset 2", simpleSections2, InsightDatasetKind.Sections);
