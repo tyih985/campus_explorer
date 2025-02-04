@@ -22,11 +22,7 @@ function isValidIdstring(id: string): boolean {
 }
 
 function isBase64(str: string): boolean {
-	try {
-		return Buffer.from(str, "base64").toString("base64") === str.replace(/\r?\n|\r/g, "");
-	} catch {
-		return false;
-	}
+	return Buffer.from(str, "base64").toString("base64") === str.replace(/\r?\n|\r/g, "");
 }
 
 export default class InsightFacade implements IInsightFacade {
@@ -37,12 +33,16 @@ export default class InsightFacade implements IInsightFacade {
 		if (!isBase64(content)) {
 			throw new InsightError("Given content string is not in base 64.");
 		}
+		if (this.datasetProcessor.hasDataset(id)) {
+			throw new InsightError("Dataset with given idstring already exists.");
+		}
+
 		const sections = await this.datasetProcessor.parseFiles(content);
 		if (sections.length === 0) {
 			throw new InsightError("No valid sections found.");
 		}
 		const dataset = new Dataset(id, sections, kind);
-		await dataset.saveDataset();
+		await dataset.saveDataset(String(this.datasetProcessor.getDatasetSize()));
 
 		return this.datasetProcessor.addDataset(dataset);
 	}
