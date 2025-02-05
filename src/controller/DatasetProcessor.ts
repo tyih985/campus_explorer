@@ -7,22 +7,26 @@ import { Section } from "./Section";
 
 const folderPath: string = path.resolve(__dirname, "..", "..", "data");
 
-export class DatasetProcessor {
-	private datasets: Dataset[] = [];
-	private ids: Record<string, string> = {};
-	private nextFile: number = 0;
+export function encodeToBase64Url(str: string): string {
+	return Buffer.from(str, "utf-8")
+		.toString("base64") // Standard Base64
+		.replace(/\+/g, "-") // Replace + with -
+		.replace(/\//g, "_") // Replace / with _
+		.replace(/=+$/, ""); // Remove trailing =
+}
 
-	private async setup(): Promise<void> {
+export class DatasetProcessor {
+	private datasets: InsightDataset[] = [];
+	private ids: Record<string, string> = {};
+
+	private async loadData(): Promise<void> {
 		try {
 			const datasetFiles = await this.getDataFiles();
-			this.datasets = await this.getAllDatasets(datasetFiles);
-			this.ids = await this.getIdstrings(datasetFiles);
-			this.nextFile = await this.setNextFile();
+			await this.getData(datasetFiles);
 		} catch {}
 	}
 
 	public async parseFiles(zip: string): Promise<Section[]> {
-		await this.setup();
 		try {
 			const zipBuffer = Buffer.from(zip, "base64");
 			const data = await JSZip.loadAsync(zipBuffer);
@@ -63,35 +67,27 @@ export class DatasetProcessor {
 		return requiredKeys.every((key) => key in json);
 	}
 
-	private async getAllDatasets(files: string[]): Promise<Dataset[]> {
+	private async getData(files: string[]): Promise<void> {
 		try {
-			const jsonDataPromises = files.map(async (file) => {
+			const cachedFiles = new Set(Object.values(this.ids));
+			const loadNeeded = files.filter((file) => !cachedFiles.has(path.basename(file, ".json")));
+
+			const jsonDataPromises = loadNeeded.map(async (file) => {
 				const filePath = path.join(folderPath, file);
 				const content = await fs.promises.readFile(filePath, "utf-8");
 				const data = JSON.parse(content);
-
-				return new Dataset(
-					data.id,
-					data.sections.map((section: any) => new Section(section)),
-					data.kind
-				);
+				this.datasets.push({
+					id: data.id,
+					kind: data.kind,
+					numRows: data.numRows,
+				});
+				this.ids[data.id] = encodeToBase64Url(data.id);
 			});
-
-			return await Promise.all(jsonDataPromises);
+			await Promise.all(jsonDataPromises);
+			return;
 		} catch (err) {
 			throw new InsightError(`Unexpected error thrown: ${err}`);
 		}
-	}
-
-	private async getIdstrings(files: string[]): Promise<Record<string, string>> {
-		const idPromises = this.datasets.map(async (dataset, index) => {
-			return {
-				[dataset.id]: path.basename(files[index], ".json"),
-			};
-		});
-		const result = await Promise.all(idPromises);
-
-		return result.reduce((id, filename) => ({ ...id, ...filename }), {} as Record<string, string>);
 	}
 
 	private async getDataFiles(): Promise<string[]> {
@@ -102,42 +98,28 @@ export class DatasetProcessor {
 		}
 	}
 
-	private async setNextFile(): Promise<number> {
-		let largest = -1;
-		const promises = Object.values(this.ids).map(async (value) => {
-			if (Number(value) > largest) {
-				largest = Number(value);
-			}
-		});
-		await Promise.all(promises);
-		if (largest === -1) {
-			return 0;
-		}
-		return largest + 1;
-	}
-
 	public async hasDataset(id: string): Promise<boolean> {
-		await this.setup();
+		await this.loadData();
 		return id in this.ids;
 	}
 
-	public async getNextFileName(): Promise<number> {
-		await this.setup();
-		const rtn = this.nextFile;
-		this.nextFile = await this.setNextFile();
-		return rtn;
+	public async getFilename(id: string): Promise<string> {
+		return encodeToBase64Url(id);
 	}
 
-	public async addDataset(): Promise<string[]> {
-		await this.setup();
+	public async addDataset(dataset: Dataset): Promise<string[]> {
+		this.datasets.push({
+			id: dataset.id,
+			kind: dataset.kind,
+			numRows: dataset.numRows,
+		});
+		this.ids[dataset.id] = encodeToBase64Url(dataset.id);
 		return Object.keys(this.ids);
 	}
 
 	public async removeDataset(id: string): Promise<string> {
-		await this.setup();
-
-		const fileName = this.ids[id as keyof typeof this.ids];
-		const filePath = path.join(folderPath, `${String(fileName)}.json`);
+		const filename = this.ids[id as keyof typeof this.ids];
+		const filePath = path.join(folderPath, `${filename}.json`);
 
 		fs.unlink(filePath, (err) => {
 			if (err) {
@@ -150,7 +132,7 @@ export class DatasetProcessor {
 	}
 
 	public async listDatasets(): Promise<InsightDataset[]> {
-		await this.setup();
-		return this.datasets.map(({ sections, ...rest }) => rest);
+		await this.loadData();
+		return this.datasets;
 	}
 }
