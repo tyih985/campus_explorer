@@ -135,4 +135,21 @@ export class DatasetProcessor {
 		await this.loadData();
 		return this.datasets;
 	}
+
+	public async getDataset(id: string): Promise<Dataset> {
+		if (!(id in this.ids)) {
+			await this.loadData();
+		}
+		const filename = `${this.ids[id]}.json`;
+		const filePath = path.join(folderPath, filename);
+		try {
+			const content = await fs.promises.readFile(filePath, "utf-8");
+			const data = JSON.parse(content);
+			return new Dataset(
+				data.id, data.sections, data.kind
+			);
+		} catch (err) {
+			throw new InsightError(`Unexpected error occurred: ${err}`);
+		}
+	}
 }
