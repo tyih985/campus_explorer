@@ -2,6 +2,7 @@ import { InsightDatasetKind, InsightError } from "./IInsightFacade";
 import path from "path";
 import fs from "fs";
 import { Section } from "./Section";
+import { encodeToBase64Url } from "./DatasetProcessor";
 
 export class Dataset {
 	public id: string;
@@ -16,7 +17,7 @@ export class Dataset {
 		this.numRows = sections.length;
 	}
 
-	public async saveDataset(fileName: string): Promise<void> {
+	public async saveDataset(): Promise<void> {
 		const sectionsObject = [];
 		for (const s of this.sections) {
 			sectionsObject.push(s.formatSection());
@@ -30,7 +31,7 @@ export class Dataset {
 		};
 
 		const folderPath = path.resolve(__dirname, "..", "..", "data");
-		const filePath = path.join(folderPath, `${fileName}.json`);
+		const filePath = path.join(folderPath, `${encodeToBase64Url(this.id)}.json`);
 		try {
 			await fs.promises.mkdir(folderPath, { recursive: true });
 
