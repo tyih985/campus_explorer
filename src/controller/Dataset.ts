@@ -7,7 +7,7 @@ export class Dataset {
 	public id: string;
 	public kind: InsightDatasetKind;
 	public numRows: number;
-	public readonly sections: Section[];
+	public readonly sections: Section[] | null;
 
 	constructor(idstring: string, sections: Section[], kind: InsightDatasetKind) {
 		this.id = idstring;
@@ -17,9 +17,12 @@ export class Dataset {
 	}
 
 	public async saveDataset(fileName: string): Promise<void> {
-		const sectionsObject = [];
-		for (const s of this.sections) {
-			sectionsObject.push(s.formatSection());
+		const sectionsObject: Object[] = [];
+		if (this.sections) {
+			const sectionPromises = this.sections.map(async (section) => {
+				sectionsObject.push(section.formatSection());
+			});
+			await Promise.all(sectionPromises);
 		}
 
 		const data = {
