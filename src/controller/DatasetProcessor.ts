@@ -145,9 +145,7 @@ export class DatasetProcessor {
 		try {
 			const content = await fs.promises.readFile(filePath, "utf-8");
 			const data = JSON.parse(content);
-			return new Dataset(
-				data.id, data.sections, data.kind
-			);
+			return new Dataset(data.id, data.sections, data.kind);
 		} catch (err) {
 			throw new InsightError(`Unexpected error occurred: ${err}`);
 		}
