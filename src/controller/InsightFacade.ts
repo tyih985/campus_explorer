@@ -42,10 +42,8 @@ export default class InsightFacade implements IInsightFacade {
 		if (sections.length === 0) {
 			throw new InsightError("No valid sections found.");
 		}
-		const dataset = new Dataset(id, sections, kind);
-		await dataset.saveDataset();
 
-		return await this.datasetProcessor.addDataset(dataset);
+		return await this.datasetProcessor.addDataset(new Dataset(id, sections, kind));
 	}
 
 	public async removeDataset(id: string): Promise<string> {
