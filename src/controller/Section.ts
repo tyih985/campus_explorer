@@ -19,7 +19,7 @@ export class Section {
 			this.title = String(json.Title);
 			this.professor = String(json.Professor);
 			this.department = String(json.Subject);
-			if (json.Year === "overall") {
+			if ("Section" in json && json.Section === "overall") {
 				this.year = 1900;
 			} else {
 				this.year = Number(json.Year);
@@ -46,5 +46,21 @@ export class Section {
 			Fail: this.fail,
 			Audit: this.audit,
 		};
+	}
+
+	public get(field: string): string | number {
+		switch (field) {
+			case "uuid": { return this.id; }
+			case "id": { return this.course; }
+			case "title": { return this.title }
+			case "instructor": { return this.professor; }
+			case "dept": { return this.department; }
+			case "year": { return this.year; }
+			case "avg": { return this.average }
+			case "pass": { return this.pass; }
+			case "fail": { return this.fail; }
+			case "audit": { return this.audit; }
+			default: { throw new InsightError("Incorrect key given."); }
+		}
 	}
 }
