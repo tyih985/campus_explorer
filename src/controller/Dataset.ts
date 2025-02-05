@@ -34,24 +34,9 @@ export class Dataset {
 		const filePath = path.join(folderPath, `${encodeToBase64Url(this.id)}.json`);
 		try {
 			await fs.promises.mkdir(folderPath, { recursive: true });
-
-			const fileDoesNotExist = await this.checkIdstring(filePath);
-			if (fileDoesNotExist) {
-				await fs.promises.writeFile(filePath, JSON.stringify(data, null, 2));
-			} else {
-				throw new InsightError("Dataset with idstring already exists.");
-			}
+			await fs.promises.writeFile(filePath, JSON.stringify(data, null, 2));
 		} catch {
 			throw new InsightError("Dataset could not be saved.");
-		}
-	}
-
-	private async checkIdstring(filePath: string): Promise<boolean> {
-		try {
-			await fs.promises.stat(filePath);
-			return false;
-		} catch {
-			return true;
 		}
 	}
 }
