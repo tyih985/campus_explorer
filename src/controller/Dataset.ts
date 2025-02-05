@@ -7,7 +7,7 @@ export class Dataset {
 	public id: string;
 	public kind: InsightDatasetKind;
 	public numRows: number;
-	public readonly sections: Section[] | null;
+	public readonly sections: Section[];
 
 	constructor(idstring: string, sections: Section[], kind: InsightDatasetKind) {
 		this.id = idstring;
