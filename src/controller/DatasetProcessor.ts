@@ -1,6 +1,6 @@
 import { InsightDataset, InsightError } from "./IInsightFacade";
 import JSZip from "jszip";
-import * as fs from "fs";
+import * as fs from "fs-extra";
 import * as path from "path";
 import { Dataset } from "./Dataset";
 import { Section } from "./Section";
@@ -25,6 +25,65 @@ export class DatasetProcessor {
 			await this.getData(datasetFiles);
 		} catch {}
 	}
+
+	private async loadAllDatasets(): Promise<void> {
+		if (!(await this.folderExists())) {
+			this.datasets = [];
+			this.ids = {};
+			return;
+		}
+
+		const files = await this.getDataFiles();
+		const cachedFiles = new Set(Object.values(this.ids));
+		const loadNeeded = files.filter((file) => !cachedFiles.has(path.basename(file, ".json")));
+		const filePromises = loadNeeded.map(async (filename) => {
+			await this.loadDataset(filename);
+		});
+		await Promise.all(filePromises);
+		return;
+	}
+
+	private async folderExists(): Promise<boolean> {
+		try {
+			await fs.promises.access(folderPath, fs.constants.F_OK);
+			return true;
+		} catch {
+			return false;
+		}
+	}
+
+	private async getDataFiles(): Promise<string[]> {
+		try {
+			return await fs.promises.readdir(folderPath);
+		} catch (err) {
+			throw new InsightError(`Unexpected error thrown: ${err}`);
+		}
+	}
+
+	public async getDatasets(): Promise<Dataset[]> {
+		await this.loadAllDatasets();
+		return this.datasets;
+	}
+
+	public async getIds(): Promise<Record<string, string>> {
+		await this.loadAllDatasets();
+		return this.ids;
+	}
+
+	public async addDataset(dataset: Dataset): Promise<void> {
+		await this.loadAllDatasets();
+		this.datasets.push(dataset);
+		this.ids[dataset.id] = encodeToBase64Url(dataset.id);
+	}
+
+	public removeDataset(id: string): void {
+		this.datasets = this.datasets.filter((dataset) => dataset.id !== id);
+		delete this.ids[id];
+	}
+}
+
+export class DatasetProcessor {
+	private data: DatasetCache = DatasetCache.getInstance();
 
 	public async parseFiles(zip: string): Promise<Section[]> {
 		try {
