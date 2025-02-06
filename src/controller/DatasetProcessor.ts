@@ -19,13 +19,6 @@ export class DatasetProcessor {
 	private datasets: InsightDataset[] = [];
 	private ids: Record<string, string> = {};
 
-	private async loadData(): Promise<void> {
-		try {
-			const datasetFiles = await this.getDataFiles();
-			await this.getData(datasetFiles);
-		} catch {}
-	}
-
 	public async parseFiles(zip: string): Promise<Section[]> {
 		try {
 			const zipBuffer = Buffer.from(zip, "base64");
@@ -67,6 +60,13 @@ export class DatasetProcessor {
 		return requiredKeys.every((key) => key in json);
 	}
 
+	private async loadData(): Promise<void> {
+		try {
+			const datasetFiles = await this.getDataFiles();
+			await this.getData(datasetFiles);
+		} catch {}
+	}
+
 	private async getData(files: string[]): Promise<void> {
 		try {
 			const cachedFiles = new Set(Object.values(this.ids));
@@ -92,9 +92,21 @@ export class DatasetProcessor {
 
 	private async getDataFiles(): Promise<string[]> {
 		try {
-			return await fs.promises.readdir(folderPath);
+			if (await this.pathExists(folderPath)) {
+				return await fs.promises.readdir(folderPath);
+			}
+			return [];
 		} catch (err) {
 			throw new InsightError(`Unexpected error thrown: ${err}`);
+		}
+	}
+
+	private async pathExists(pathString: string): Promise<boolean> {
+		try {
+			await fs.promises.access(pathString, fs.constants.F_OK);
+			return true;
+		} catch {
+			return false;
 		}
 	}
 
@@ -120,15 +132,17 @@ export class DatasetProcessor {
 	public async removeDataset(id: string): Promise<string> {
 		const filename = this.ids[id as keyof typeof this.ids];
 		const filePath = path.join(folderPath, `${filename}.json`);
-
-		fs.unlink(filePath, (err) => {
-			if (err) {
-				throw new InsightError(`Error removing dataset: ${err}`);
-			}
-		});
-		this.datasets = this.datasets.filter((dataset) => dataset.id !== id);
-		delete this.ids[id];
-		return id;
+		if (await this.pathExists(filePath)) {
+			fs.unlink(filePath, (err) => {
+				if (err) {
+					throw new InsightError(`Error removing dataset: ${err}`);
+				}
+			});
+			this.datasets = this.datasets.filter((dataset) => dataset.id !== id);
+			delete this.ids[id];
+			return id;
+		}
+		throw new InsightError("Cannot remove given dataset as it does not exist.");
 	}
 
 	public async listDatasets(): Promise<InsightDataset[]> {
