@@ -5,7 +5,7 @@ import { Section } from "./Section";
 
 export class QueryEngine {
 	public async performQuery(query: any, datasetProcessor: DatasetProcessor): Promise<InsightResult[]> {
-		await this.validateQuery(query);
+		this.validateQuery(query);
 		const id = this.getDatasetId(query);
 		if (!(await datasetProcessor.hasDataset(id))) {
 			throw new InsightError("ValidationError: Dataset not found.");
@@ -24,7 +24,7 @@ export class QueryEngine {
 		return parsedKey[0];
 	}
 
-	private async validateQuery(query: any): Promise<void> {
+	private validateQuery(query: any): void {
 		if (typeof query !== "object" || query === null) {
 			throw new InsightError("ValidationError: Query must be an object.");
 		}
