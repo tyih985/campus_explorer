@@ -19,7 +19,7 @@ export class Section {
 			this.title = String(json.Title);
 			this.professor = String(json.Professor);
 			this.department = String(json.Subject);
-			if (json.Year === "overall") {
+			if ("Section" in json && json.Section === "overall") {
 				this.year = 1900;
 			} else {
 				this.year = Number(json.Year);
@@ -46,5 +46,25 @@ export class Section {
 			Fail: this.fail,
 			Audit: this.audit,
 		};
+	}
+
+	// eslint-disable-next-line @ubccpsc310/descriptive/max-lines-per-function
+	public get(field: string): string | number {
+		const fieldDict = {
+			uuid: this.id,
+			id: this.course,
+			title: this.title,
+			instructor: this.professor,
+			dept: this.department,
+			year: this.year,
+			avg: this.average,
+			pass: this.pass,
+			fail: this.fail,
+			audit: this.audit,
+		};
+		if (Object.hasOwn(fieldDict as object, field as string)) {
+			return (fieldDict as any)[field as string];
+		}
+		throw new InsightError("Invalid query key given.");
 	}
 }
