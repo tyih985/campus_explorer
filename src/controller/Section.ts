@@ -48,19 +48,23 @@ export class Section {
 		};
 	}
 
+	// eslint-disable-next-line @ubccpsc310/descriptive/max-lines-per-function
 	public get(field: string): string | number {
-		switch (field) {
-			case "uuid": { return this.id; }
-			case "id": { return this.course; }
-			case "title": { return this.title }
-			case "instructor": { return this.professor; }
-			case "dept": { return this.department; }
-			case "year": { return this.year; }
-			case "avg": { return this.average }
-			case "pass": { return this.pass; }
-			case "fail": { return this.fail; }
-			case "audit": { return this.audit; }
-			default: { throw new InsightError("Incorrect key given."); }
+		const fieldDict = {
+			uuid: this.id,
+			id: this.course,
+			title: this.title,
+			instructor: this.professor,
+			dept: this.department,
+			year: this.year,
+			avg: this.average,
+			pass: this.pass,
+			fail: this.fail,
+			audit: this.audit,
+		};
+		if (Object.hasOwn(fieldDict as object, field as string)) {
+			return (fieldDict as any)[field as string];
 		}
+		throw new InsightError("Invalid query key given.");
 	}
 }
