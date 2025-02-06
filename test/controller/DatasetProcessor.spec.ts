@@ -1,4 +1,4 @@
-import { DatasetProcessor } from "../../src/controller/DatasetProcessor";
+import { DatasetProcessor, encodeToBase64Url } from "../../src/controller/DatasetProcessor";
 import { clearDisk } from "../TestUtil";
 import chaiAsPromised from "chai-as-promised";
 import { expect, use } from "chai";
@@ -28,19 +28,23 @@ describe("DatasetProcessor", function () {
 
 		it("should get datasets correctly across instances", async function () {
 			const otherDatasetProcessor = new DatasetProcessor();
-			await datasetProcessor.addDataset(new Dataset("data", [], InsightDatasetKind.Sections));
-			await datasetProcessor.addDataset(new Dataset("test", [], InsightDatasetKind.Sections));
+			const dataset1 = new Dataset("data", [], InsightDatasetKind.Sections);
+			const dataset2 = new Dataset("test", [], InsightDatasetKind.Sections);
+			await dataset1.saveDataset(encodeToBase64Url(dataset1.id));
+			await dataset2.saveDataset(encodeToBase64Url(dataset2.id));
+
 			const result = await otherDatasetProcessor.listDatasets();
 			const secondResult = await datasetProcessor.listDatasets();
 			expect(result).to.have.deep.members(secondResult);
 		});
 
 		it("should get correct dataset given idstring", async function () {
-			const dataset = new Dataset("this-is-valid", [], InsightDatasetKind.Sections);
-			await datasetProcessor.addDataset(new Dataset("simple idstring", [], InsightDatasetKind.Sections));
-			await datasetProcessor.addDataset(dataset);
+			const dataset1 = new Dataset("this-is-valid", [], InsightDatasetKind.Sections);
+			const dataset2 = new Dataset("simple idstring", [], InsightDatasetKind.Sections);
+			await dataset1.saveDataset(encodeToBase64Url(dataset1.id));
+			await dataset2.saveDataset(encodeToBase64Url(dataset2.id));
 			const result = await datasetProcessor.getDataset("this-is-valid");
-			expect(result).to.deep.equal(dataset);
+			expect(result).to.deep.equal(dataset1);
 		});
 
 		it("should reject when trying to remove nonexistent file", async function () {
@@ -54,16 +58,18 @@ describe("DatasetProcessor", function () {
 
 		it("should remove datasets correctly", async function () {
 			const dataset1 = new Dataset("dataset 1", [], InsightDatasetKind.Sections);
-			const dataset2 = new Dataset("dataset 2", [], InsightDatasetKind.Sections);
-			const dataset3 = new Dataset("dataset 3", [], InsightDatasetKind.Sections);
-			await datasetProcessor.addDataset(dataset1);
+			await dataset1.saveDataset(encodeToBase64Url(dataset1.id));
+			const list = await datasetProcessor.listDatasets();
+			expect(list).to.have.deep.members([
+				{
+					id: "dataset 1",
+					kind: InsightDatasetKind.Sections,
+					numRows: 0,
+				},
+			]);
 			await datasetProcessor.removeDataset("dataset 1");
 			const result = await datasetProcessor.listDatasets();
 			expect(result).to.deep.equal([]);
-			await datasetProcessor.addDataset(dataset2);
-			await datasetProcessor.addDataset(dataset3);
-			await datasetProcessor.addDataset(dataset1);
-			await datasetProcessor.removeDataset("dataset 2");
 		});
 	});
 });
