@@ -5,8 +5,10 @@ import {
 	InsightError,
 	InsightResult,
 	NotFoundError,
+	ResultTooLargeError,
 } from "./IInsightFacade";
 import { DatasetProcessor } from "./DatasetProcessor";
+import { QueryEngine } from "./QueryEngine";
 import { Dataset } from "./Dataset";
 
 /**
@@ -28,6 +30,7 @@ function isBase64(str: string): boolean {
 
 export default class InsightFacade implements IInsightFacade {
 	private datasetProcessor: DatasetProcessor = new DatasetProcessor();
+	private queryEngine: QueryEngine = new QueryEngine();
 
 	public async addDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
 		isValidIdstring(id);
@@ -59,8 +62,11 @@ export default class InsightFacade implements IInsightFacade {
 	}
 
 	public async performQuery(query: unknown): Promise<InsightResult[]> {
-		// TODO: Remove this once you implement the methods!
-		throw new Error(`InsightFacadeImpl::performQuery() is unimplemented! - query=${query};`);
+		const result = await this.queryEngine.performQuery(query, this.datasetProcessor);
+		if (result.length > 5000) {
+			throw new ResultTooLargeError("Query returned more than 5000 results");
+		}
+		return result;
 	}
 
 	public async listDatasets(): Promise<InsightDataset[]> {
