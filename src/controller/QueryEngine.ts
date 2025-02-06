@@ -3,13 +3,12 @@ import { DatasetProcessor } from "./DatasetProcessor";
 import { Dataset } from "./Dataset";
 import { Section } from "./Section";
 
+type Predicate = (section: Section) => boolean;
+
 export class QueryEngine {
 	public async performQuery(query: any, datasetProcessor: DatasetProcessor): Promise<InsightResult[]> {
 		this.validateQuery(query);
 		const id = this.getDatasetId(query);
-		if (!(await datasetProcessor.hasDataset(id))) {
-			throw new InsightError("ValidationError: Dataset not found.");
-		}
 		const dataset = await datasetProcessor.getDataset(id);
 		const filteredDataset = this.filter(query.WHERE, id, dataset);
 		return this.handleOPTIONS(query.OPTIONS, id, filteredDataset);
@@ -31,7 +30,7 @@ export class QueryEngine {
 		if (!query.WHERE) {
 			throw new InsightError("ValidationError: Query is missing required field 'WHERE'.");
 		}
-		if (typeof query.WHERE !== "object") {
+		if (typeof query.WHERE !== "object" || Array.isArray(query)) {
 			throw new InsightError("ValidationError: Query field 'WHERE' should be an object.");
 		}
 		if (!query.OPTIONS) {
@@ -102,139 +101,146 @@ export class QueryEngine {
 		}
 	}
 
-	private filter(query: any, id: string, dataset: Dataset): Dataset {
-		const validFilterKeys = ["AND", "OR", "NOT", "GT", "LT", "EQ", "IS"];
-		if (Array.isArray(query)) {
-			throw new InsightError("ValidationError: Query should be an object.");
+	private makeRegexPattern(value: string): string {
+		const removeSurroundingAsterisks = value.replace(/^\*|\*$/g, "");
+		if (removeSurroundingAsterisks.includes("*")) {
+			throw new InsightError("ValidationError: No asterisks allowed in middle of string.");
 		}
-		if (Object.keys(query).length === 0) {
+		const keyStartsWithAsterisk = value.startsWith("*");
+		const keyEndsWithAsterisk = value.endsWith("*");
+
+		if (keyStartsWithAsterisk && keyEndsWithAsterisk) {
+			return `.*${removeSurroundingAsterisks}.*`;
+		} else if (keyStartsWithAsterisk) {
+			return `.*${removeSurroundingAsterisks}$`;
+		} else if (keyEndsWithAsterisk) {
+			return `^${removeSurroundingAsterisks}.*`;
+		} else {
+			return `^${value}$`;
+		}
+	}
+
+	private filter(where: any, id: string, dataset: Dataset): Dataset {
+		const validFilterKeys = ["AND", "OR", "NOT", "GT", "LT", "EQ", "IS"];
+		if (Object.keys(where).length === 0) {
 			return dataset;
 		}
-		if (Object.keys(query).length !== 1) {
+		if (Object.keys(where).length !== 1) {
 			throw new InsightError("ValidationError: Should only have one key.");
 		}
-		const filterKey = Object.keys(query)[0];
+		const filterKey = Object.keys(where)[0];
 		if (!validFilterKeys.includes(filterKey)) {
 			throw new InsightError(`ValidationError: Invalid filter key.`);
 		}
 
+		const predicate = this.makePredicate(where, id);
+		const filteredSections = dataset.sections.filter(predicate);
+		return new Dataset(dataset.id, filteredSections, dataset.kind);
+	}
+
+	private makePredicate(filter: any, id: string): Predicate {
+		const filterKey = Object.keys(filter)[0];
 		switch (filterKey) {
 			case "AND":
-				return this.handleAND(query.AND, id, dataset);
+				return this.handleAND(filter.AND, id);
 			case "OR":
-				return this.handleOR(query.OR, id, dataset);
+				return this.handleOR(filter.OR, id);
 			case "NOT":
-				return this.handleNOT(query.NOT, id, dataset);
+				return this.handleNOT(filter.NOT, id);
 			case "GT":
 			case "LT":
 			case "EQ":
-				return this.handleOp(query, id, dataset);
+				return this.handleComp(filter[filterKey], filterKey, id);
 			case "IS":
-				return this.handleIS(query.IS, id, dataset);
+				return this.handleIS(filter.IS, id);
 			default:
 				throw new InsightError("ValidationError: Invalid filter key.");
 		}
 	}
 
-	private handleAND(andArray: any[], id: string, dataset: Dataset): Dataset {
+	private handleAND(andArray: any[], id: string): Predicate {
 		if (!Array.isArray(andArray) || andArray.length === 0) {
-			throw new InsightError(`ValidationError: AND must be a non-empty array.`);
+			throw new InsightError("ValidationError: AND must be a non-empty array.");
 		}
-		for (const sub of andArray) {
-			dataset = this.filter(sub, id, dataset);
-		}
-		return dataset;
+		const predicates = andArray.map((subFilter) => this.makePredicate(subFilter, id));
+		return (section: Section) => predicates.every((pred) => pred(section));
 	}
 
-	private handleOR(orArray: any[], id: string, dataset: Dataset): Dataset {
+	private handleOR(orArray: any[], id: string): Predicate {
 		if (!Array.isArray(orArray) || orArray.length === 0) {
-			throw new InsightError(`ValidationError: OR must be a non-empty array.`);
+			throw new InsightError("ValidationError: OR must be a non-empty array.");
 		}
-		const unionSections = new Set<Section>();
-		for (const sub of orArray) {
-			const filteredDataset = this.filter(sub, id, dataset);
-			filteredDataset.sections.forEach((section) => unionSections.add(section));
-		}
-		return new Dataset(dataset.id, Array.from(unionSections), dataset.kind);
+		const predicates = orArray.map((subFilter) => this.makePredicate(subFilter, id));
+		return (section: Section) => predicates.some((pred) => pred(section));
 	}
 
-	private handleNOT(notObject: any, id: string, dataset: Dataset): Dataset {
-		const notDataset = this.filter(notObject, id, dataset);
-		const remaining = dataset.sections.filter((section) => !notDataset.sections.includes(section));
-		return new Dataset(dataset.id, remaining, dataset.kind);
+	private handleNOT(notObj: any, id: string): Predicate {
+		if (typeof notObj !== "object" || Array.isArray(notObj)) {
+			throw new InsightError("ValidationError: Must contain a valid filter object.");
+		}
+		if (Object.keys(notObj).length !== 1) {
+			throw new InsightError("ValidationError: Should only have one key.");
+		}
+		const predicate = this.makePredicate(notObj, id);
+		return (section: Section) => !predicate(section);
 	}
 
-	private handleOp(query: any, id: string, dataset: Dataset): Dataset {
-		const opObj = Object.keys(query)[0];
-		const compObj = query[opObj];
-		const keys = Object.keys(compObj);
-		if (keys.length !== 1) {
-			throw new InsightError(`ValidationError: Should only have one key.`);
+	private handleComp(compObj: any, comp: string, id: string): Predicate {
+		if (typeof compObj !== "object" || Array.isArray(compObj)) {
+			throw new InsightError("ValidationError: Must contain a valid filter object.");
+		}
+		if (Object.keys(compObj).length !== 1) {
+			throw new InsightError("ValidationError: Should only have one key.");
 		}
 		const key = Object.keys(compObj)[0];
 		const value = compObj[key];
 		if (typeof value !== "number") {
-			throw new InsightError(`ValidationError: Invalid query.`);
+			throw new InsightError("ValidationError: Comparison requires numeric value.");
 		}
 		this.validateNumericKey(key, id);
 
-		return new Dataset(
-			dataset.id,
-			dataset.sections.filter((section) => {
-				const field = section.get(key.split("_")[1]) as number;
-				switch (opObj) {
-					case "GT":
-						return field > value;
-					case "LT":
-						return field < value;
-					case "EQ":
-						return field === value;
-					default:
-						return false;
-				}
-			}),
-			dataset.kind
-		);
+		const field = key.split("_")[1];
+		return (section: Section) => {
+			const sectionValue = section.get(field);
+			if (typeof sectionValue !== "number") {
+				return false;
+			}
+			switch (comp) {
+				case "GT":
+					return sectionValue > value;
+				case "LT":
+					return sectionValue < value;
+				case "EQ":
+					return sectionValue === value;
+				default:
+					return false;
+			}
+		};
 	}
 
-	private handleIS(isObj: any, id: string, dataset: Dataset): Dataset {
-		const keys = Object.keys(isObj);
-		if (keys.length !== 1) {
-			throw new InsightError("ValidationError: IS filter must have exactly one key.");
+	private handleIS(isObj: any, id: string): Predicate {
+		if (typeof isObj !== "object" || Array.isArray(isObj)) {
+			throw new InsightError("ValidationError: Must contain a valid filter object.");
 		}
-		const key = keys[0];
-		const value: string = isObj[key];
+		if (Object.keys(isObj).length !== 1) {
+			throw new InsightError("ValidationError: Should only have one key.");
+		}
+
+		const key = Object.keys(isObj)[0];
+		const value = isObj[key];
+		if (typeof value !== "string") {
+			throw new InsightError("ValidationError: IS filter requires a string value.");
+		}
+
 		this.validateStringKey(key, id);
-
-		const keyStartsWithAsterisk = value.startsWith("*");
-		const keyEndsWithAsterisk = value.endsWith("*");
-
-		const removeSurroundingAsterisks = value.replace(/^\*|\*$/g, "");
-		if (removeSurroundingAsterisks.includes("*")) {
-			throw new InsightError("ValidationError: No asterisks allowed in middle of string.");
-		}
-
-		let regexPattern: string;
-		if (keyStartsWithAsterisk && keyEndsWithAsterisk) {
-			regexPattern = `.*${removeSurroundingAsterisks}.*`;
-		} else if (keyStartsWithAsterisk) {
-			regexPattern = `.*${removeSurroundingAsterisks}$`;
-		} else if (keyEndsWithAsterisk) {
-			regexPattern = `^${removeSurroundingAsterisks}.*`;
-		} else {
-			regexPattern = `^${value}$`;
-		}
+		const regexPattern = this.makeRegexPattern(value);
+		const field = key.split("_")[1];
 
 		const regex = new RegExp(regexPattern);
-
-		return new Dataset(
-			dataset.id,
-			dataset.sections.filter((section) => {
-				const field = section.get(key.split("_")[1]);
-				return typeof field === "string" && regex.test(field);
-			}),
-			dataset.kind
-		);
+		return (section: Section) => {
+			const fieldValue = section.get(field);
+			return typeof fieldValue === "string" && regex.test(fieldValue);
+		};
 	}
 
 	private handleOPTIONS(options: any, id: string, filteredDataset: Dataset): InsightResult[] {
