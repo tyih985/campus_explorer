@@ -62,7 +62,8 @@ export default class InsightFacade implements IInsightFacade {
 
 	public async performQuery(query: unknown): Promise<InsightResult[]> {
 		const result = await this.queryEngine.performQuery(query, this.datasetProcessor);
-		if (result.length > 5000) {
+		const tooLarge: number = 5000;
+		if (result.length > tooLarge) {
 			throw new ResultTooLargeError("Query returned more than 5000 results");
 		}
 		return result;
