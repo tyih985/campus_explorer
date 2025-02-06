@@ -112,9 +112,9 @@ export class QueryEngine {
 		if (keyStartsWithAsterisk && keyEndsWithAsterisk) {
 			return `.*${removeSurroundingAsterisks}.*`;
 		} else if (keyStartsWithAsterisk) {
-			return`.*${removeSurroundingAsterisks}$`;
+			return `.*${removeSurroundingAsterisks}$`;
 		} else if (keyEndsWithAsterisk) {
-			return`^${removeSurroundingAsterisks}.*`;
+			return `^${removeSurroundingAsterisks}.*`;
 		} else {
 			return `^${value}$`;
 		}
@@ -162,16 +162,16 @@ export class QueryEngine {
 		if (!Array.isArray(andArray) || andArray.length === 0) {
 			throw new InsightError("ValidationError: AND must be a non-empty array.");
 		}
-		const predicates = andArray.map(subFilter => this.makePredicate(subFilter, id));
-		return (section: Section) => predicates.every(pred => pred(section));
+		const predicates = andArray.map((subFilter) => this.makePredicate(subFilter, id));
+		return (section: Section) => predicates.every((pred) => pred(section));
 	}
 
 	private handleOR(orArray: any[], id: string): Predicate {
 		if (!Array.isArray(orArray) || orArray.length === 0) {
 			throw new InsightError("ValidationError: OR must be a non-empty array.");
 		}
-		const predicates = orArray.map(subFilter => this.makePredicate(subFilter, id));
-		return (section: Section) => predicates.some(pred => pred(section));
+		const predicates = orArray.map((subFilter) => this.makePredicate(subFilter, id));
+		return (section: Section) => predicates.some((pred) => pred(section));
 	}
 
 	private handleNOT(notObj: any, id: string): Predicate {
@@ -206,10 +206,14 @@ export class QueryEngine {
 				return false;
 			}
 			switch (comp) {
-				case "GT": return sectionValue > value;
-				case "LT": return sectionValue < value;
-				case "EQ": return sectionValue === value;
-				default: return false;
+				case "GT":
+					return sectionValue > value;
+				case "LT":
+					return sectionValue < value;
+				case "EQ":
+					return sectionValue === value;
+				default:
+					return false;
 			}
 		};
 	}
