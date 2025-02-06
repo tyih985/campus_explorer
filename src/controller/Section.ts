@@ -48,7 +48,6 @@ export class Section {
 		};
 	}
 
-	// eslint-disable-next-line @ubccpsc310/descriptive/max-lines-per-function
 	public get(field: string): string | number {
 		const fieldDict = {
 			uuid: this.id,
