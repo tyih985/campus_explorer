@@ -15,43 +15,15 @@ export function encodeToBase64Url(str: string): string {
 		.replace(/=+$/, ""); // Remove trailing =
 }
 
-export function decodeFromBase64Url(str: string): string {
-	// Reverse replacements
-	str = str.replace(/-/g, "+").replace(/_/g, "/");
-	return Buffer.from(str, "base64").toString("utf-8");
-}
-
-export class DatasetCache {
-	private static instance: DatasetCache;
-	private datasets: Dataset[] = [];
+export class DatasetProcessor {
+	private datasets: InsightDataset[] = [];
 	private ids: Record<string, string> = {};
 
-	public static getInstance(): DatasetCache {
-		if (!DatasetCache.instance) {
-			DatasetCache.instance = new DatasetCache();
-		}
-		return DatasetCache.instance;
-	}
-
-	private async loadDataset(filename: string): Promise<void> {
-		const stripFilename = path.basename(filename, ".json");
-		const id = decodeFromBase64Url(stripFilename);
-
-		const filePath = path.join(folderPath, filename);
+	private async loadData(): Promise<void> {
 		try {
-			const data = await fs.promises.readFile(filePath, "utf-8");
-			const content = JSON.parse(data);
-			this.datasets.push(
-				new Dataset(
-					content.id,
-					content.sections.map((section: any) => new Section(section)),
-					content.kind
-				)
-			);
-			this.ids[id] = path.basename(filename, ".json");
-		} catch (err) {
-			throw new InsightError(`Unexpected error occurred: ${err}`);
-		}
+			const datasetFiles = await this.getDataFiles();
+			await this.getData(datasetFiles);
+		} catch {}
 	}
 
 	private async loadAllDatasets(): Promise<void> {
@@ -154,41 +126,88 @@ export class DatasetProcessor {
 		return requiredKeys.every((key) => key in json);
 	}
 
+	private async getData(files: string[]): Promise<void> {
+		try {
+			const cachedFiles = new Set(Object.values(this.ids));
+			const loadNeeded = files.filter((file) => !cachedFiles.has(path.basename(file, ".json")));
+
+			const jsonDataPromises = loadNeeded.map(async (file) => {
+				const filePath = path.join(folderPath, file);
+				const content = await fs.promises.readFile(filePath, "utf-8");
+				const data = JSON.parse(content);
+				this.datasets.push({
+					id: data.id,
+					kind: data.kind,
+					numRows: data.numRows,
+				});
+				this.ids[data.id] = encodeToBase64Url(data.id);
+			});
+			await Promise.all(jsonDataPromises);
+			return;
+		} catch (err) {
+			throw new InsightError(`Unexpected error thrown: ${err}`);
+		}
+	}
+
+	private async getDataFiles(): Promise<string[]> {
+		try {
+			return await fs.promises.readdir(folderPath);
+		} catch (err) {
+			throw new InsightError(`Unexpected error thrown: ${err}`);
+		}
+	}
+
 	public async hasDataset(id: string): Promise<boolean> {
-		const ids = await this.data.getIds();
-		return id in ids;
+		await this.loadData();
+		return id in this.ids;
+	}
+
+	public async getFilename(id: string): Promise<string> {
+		return encodeToBase64Url(id);
 	}
 
 	public async addDataset(dataset: Dataset): Promise<string[]> {
-		await this.data.addDataset(dataset);
-		await dataset.saveDataset();
-		return Object.keys(await this.data.getIds());
+		this.datasets.push({
+			id: dataset.id,
+			kind: dataset.kind,
+			numRows: dataset.numRows,
+		});
+		this.ids[dataset.id] = encodeToBase64Url(dataset.id);
+		return Object.keys(this.ids);
 	}
 
 	public async removeDataset(id: string): Promise<string> {
-		const filePath = path.join(folderPath, `${encodeToBase64Url(id)}.json`);
-		const exists = await fs.pathExists(filePath);
+		const filename = this.ids[id as keyof typeof this.ids];
+		const filePath = path.join(folderPath, `${filename}.json`);
 
-		if (exists) {
-			await fs.remove(filePath);
-			this.data.removeDataset(id);
-			return id;
-		}
-		throw new InsightError("Error removing dataset.");
+		fs.unlink(filePath, (err) => {
+			if (err) {
+				throw new InsightError(`Error removing dataset: ${err}`);
+			}
+		});
+		this.datasets = this.datasets.filter((dataset) => dataset.id !== id);
+		delete this.ids[id];
+		return id;
 	}
 
 	public async listDatasets(): Promise<InsightDataset[]> {
-		const datasets = await this.data.getDatasets();
-		return datasets.map(({ sections, ...rest }) => rest);
-	}
-
-	public async getDatasets(): Promise<Dataset[]> {
-		return this.data.getDatasets();
+		await this.loadData();
+		return this.datasets;
 	}
 
 	public async getDataset(id: string): Promise<Dataset> {
-		const datasets = await this.data.getDatasets();
-		const ids = await this.data.getIds();
-		return datasets[Object.keys(ids).indexOf(id)];
+		if (!(id in this.ids)) {
+			await this.loadData();
+		}
+		const filename = `${this.ids[id]}.json`;
+		const filePath = path.join(folderPath, filename);
+		try {
+			const content = await fs.promises.readFile(filePath, "utf-8");
+			const data = JSON.parse(content);
+			const sections = data.sections.map((section: any) => new Section(section));
+			return new Dataset(data.id, sections, data.kind);
+		} catch (err) {
+			throw new InsightError(`Unexpected error occurred: ${err}`);
+		}
 	}
 }

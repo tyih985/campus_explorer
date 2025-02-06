@@ -17,10 +17,13 @@ export class Dataset {
 		this.numRows = sections.length;
 	}
 
-	public async saveDataset(): Promise<void> {
-		const sectionsObject = [];
-		for (const s of this.sections) {
-			sectionsObject.push(s.formatSection());
+	public async saveDataset(fileName: string): Promise<void> {
+		const sectionsObject: Object[] = [];
+		if (this.sections) {
+			const sectionPromises = this.sections.map(async (section) => {
+				sectionsObject.push(section.formatSection());
+			});
+			await Promise.all(sectionPromises);
 		}
 
 		const data = {
