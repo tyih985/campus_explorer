@@ -33,6 +33,8 @@ describe("InsightFacade", function () {
 	let simpleSections3: string;
 	let simpleSections4: string;
 
+	let rooms: string;
+
 	before(async function () {
 		// This block runs once and loads the datasets.
 		sections = await getContentFromArchives("pair.zip");
@@ -42,6 +44,8 @@ describe("InsightFacade", function () {
 		simpleSections2 = await getContentFromArchives("simpleSections2.zip");
 		simpleSections3 = await getContentFromArchives("simpleSections3.zip");
 		simpleSections4 = await getContentFromArchives("simpleSections4.zip");
+
+		rooms = await getContentFromArchives("campus.zip");
 
 		// Just in case there is anything hanging around from a previous run of the test suite
 		await clearDisk();
@@ -134,6 +138,15 @@ describe("InsightFacade", function () {
 				expect.fail("Error should be thrown!");
 			} catch (err) {
 				expect(err).to.be.an.instanceOf(InsightError);
+			}
+		});
+
+		it("should pass with valid room", async function () {
+			try {
+				const result = await facade.addDataset("abc", rooms, InsightDatasetKind.Rooms);
+				expect(result).to.have.members(["abc"]);
+			} catch (err) {
+				expect.fail(`Unexpected error thrown: ${err}`);
 			}
 		});
 	});
