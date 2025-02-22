@@ -1,9 +1,11 @@
-import { InsightDataset, InsightError } from "./IInsightFacade";
-import JSZip from "jszip";
+import { InsightDataset, InsightDatasetKind, InsightError } from "./IInsightFacade";
 import * as fs from "fs";
 import * as path from "path";
 import { Dataset } from "./Dataset";
 import { Section } from "./Section";
+import { Room } from "./Room";
+import { RoomProcessor } from "./RoomProcessor";
+import { SectionProcessor } from "./SectionProcessor";
 
 const folderPath: string = path.resolve(__dirname, "..", "..", "data");
 
@@ -18,46 +20,15 @@ export function encodeToBase64Url(str: string): string {
 export class DatasetProcessor {
 	private datasets: InsightDataset[] = [];
 	private ids: Record<string, string> = {};
+	private sectionProcessor: SectionProcessor = new SectionProcessor();
+	private roomProcessor: RoomProcessor = new RoomProcessor();
 
-	public async parseFiles(zip: string): Promise<Section[]> {
-		try {
-			const zipBuffer = Buffer.from(zip, "base64");
-			const data = await JSZip.loadAsync(zipBuffer);
-			const courses = Object.keys(data.files).filter((file) => file.startsWith("courses/"));
-
-			const filePromises = courses.map(async (filePath) => {
-				try {
-					const fileContent = await data.files[filePath].async("string");
-					const json = JSON.parse(fileContent);
-					return json.result;
-				} catch {
-					return null;
-				}
-			});
-
-			const result = (await Promise.all(filePromises)).filter(Boolean);
-			return this.validateSections(result.flat());
-		} catch {
-			throw new InsightError("Invalid zip file given.");
+	public async parse(zip: string, kind: InsightDatasetKind): Promise<Section[] | Room[]> {
+		if (kind === "sections") {
+			return this.sectionProcessor.parseZip(zip);
+		} else {
+			return this.roomProcessor.parseHtm(zip);
 		}
-	}
-
-	private validateSections(json: Record<string, any>[]): Section[] {
-		const result = [];
-		for (const item of json) {
-			try {
-				if (this.hasRequiredQueryKeys(item)) {
-					result.push(new Section(item));
-				}
-			} catch {}
-		}
-
-		return result;
-	}
-
-	private hasRequiredQueryKeys(json: Record<string, unknown>): boolean {
-		const requiredKeys = ["id", "Course", "Title", "Professor", "Subject", "Year", "Avg", "Pass", "Fail", "Audit"];
-		return requiredKeys.every((key) => key in json);
 	}
 
 	private async loadData(): Promise<void> {
@@ -159,8 +130,16 @@ export class DatasetProcessor {
 		try {
 			const content = await fs.promises.readFile(filePath, "utf-8");
 			const data = JSON.parse(content);
-			const sections = data.sections.map((section: any) => new Section(section));
-			return new Dataset(data.id, sections, data.kind);
+
+			let dataset;
+			const kind = data.kind;
+			if (kind === "sections") {
+				dataset = data.data.map((section: any) => new Section(section));
+			} else {
+				dataset = data.data.map((room: any) => new Room(room));
+			}
+
+			return new Dataset(data.id, dataset, kind);
 		} catch (err) {
 			throw new InsightError(`Unexpected error occurred: ${err}`);
 		}
