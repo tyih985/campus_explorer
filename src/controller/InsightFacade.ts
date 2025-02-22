@@ -41,11 +41,12 @@ export default class InsightFacade implements IInsightFacade {
 			throw new InsightError("Dataset with given idstring already exists.");
 		}
 
-		const sections = await this.datasetProcessor.parseFiles(content);
-		if (sections.length === 0) {
-			throw new InsightError("No valid sections found.");
+		const data = await this.datasetProcessor.parse(content, kind);
+		if (data.length === 0) {
+			throw new InsightError(`No valid ${kind} found.`);
 		}
-		const dataset = new Dataset(id, sections, kind);
+
+		const dataset = new Dataset(id, data, kind);
 		await dataset.saveDataset(await this.datasetProcessor.getFilename(id));
 
 		return await this.datasetProcessor.addDataset(dataset);

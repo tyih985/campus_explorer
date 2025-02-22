@@ -3,34 +3,50 @@ import path from "path";
 import fs from "fs";
 import { Section } from "./Section";
 import { encodeToBase64Url } from "./DatasetProcessor";
+import { Room } from "./Room";
 
 export class Dataset {
 	public id: string;
 	public kind: InsightDatasetKind;
 	public numRows: number;
 	public readonly sections: Section[];
+	public readonly rooms: Room[];
+	private readonly data: Section[] | Room[];
 
-	constructor(idstring: string, sections: Section[], kind: InsightDatasetKind) {
+	constructor(idstring: string, data: Section[] | Room[], kind: InsightDatasetKind) {
 		this.id = idstring;
-		this.sections = sections;
 		this.kind = kind;
-		this.numRows = sections.length;
+		this.numRows = data.length;
+		this.data = data;
+		this.sections = [];
+		this.rooms = [];
+
+		if (this.kind === "sections") this.sections = data as Section[];
+		else this.rooms = data as Room[];
 	}
 
 	public async saveDataset(fileName: string): Promise<void> {
-		const sectionsObject: Object[] = [];
-		if (this.sections) {
-			const sectionPromises = this.sections.map(async (section) => {
-				sectionsObject.push(section.formatSection());
-			});
-			await Promise.all(sectionPromises);
+		const object: Object[] = [];
+		let promises;
+		if (this.data) {
+			if (this.sections) {
+				promises = this.sections.map(async (section: Section) => {
+					object.push(section.formatSection());
+				});
+			} else {
+				promises = (this.data as Room[]).map(async (room: Room) => {
+					object.push(room.formatRoom());
+				});
+			}
+
+			await Promise.all(promises);
 		}
 
 		const data = {
 			id: this.id,
 			kind: this.kind,
 			numRows: this.numRows,
-			sections: sectionsObject,
+			data: object,
 		};
 
 		const folderPath = path.resolve(__dirname, "..", "..", "data");
