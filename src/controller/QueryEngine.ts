@@ -1,26 +1,47 @@
 import { InsightError, InsightResult } from "./IInsightFacade";
 import { DatasetProcessor } from "./DatasetProcessor";
+import { SectionEngine } from "./SectionEngine";
+// import { RoomEngine } from "./RoomEngine";
 import { Dataset } from "./Dataset";
-import { Section } from "./Section";
-
-type Predicate = (section: Section) => boolean;
 
 export class QueryEngine {
-	public async performQuery(query: any, datasetProcessor: DatasetProcessor): Promise<InsightResult[]> {
-		this.validateQuery(query);
-		const id = this.getDatasetId(query);
-		const dataset = await datasetProcessor.getDataset(id);
-		const filteredDataset = this.filter(query.WHERE, id, dataset);
-		return this.handleOPTIONS(query.OPTIONS, id, filteredDataset);
+	private sectionEngine: SectionEngine;
+	// private roomEngine: RoomEngine;
+
+	constructor() {
+		this.sectionEngine = new SectionEngine();
+		// this.roomEngine = new RoomEngine();
 	}
 
-	private getDatasetId(query: any): string {
-		const firstKey = query.OPTIONS.COLUMNS[0];
-		const parsedKey = firstKey.split("_");
-		if (parsedKey.length !== 2) {
-			throw new InsightError("ValidationError: Failure finding id.");
+	public async performQuery(query: any, datasetProcessor: DatasetProcessor): Promise<InsightResult[]> {
+		this.validateQuery(query);
+		const dataset = await this.getRequestedDataset(query, datasetProcessor);
+		if (dataset.kind === "sections") {
+			return this.sectionEngine.performQuery(query, dataset);
 		}
-		return parsedKey[0];
+		// else if (dataset.kind === "rooms") {
+		// 	return this.roomEngine.performQuery(query.WHERE, dataset);
+		// }
+		throw new InsightError("ValidationError: Invalid dataset kind.");
+	}
+
+	private async getRequestedDataset(query: any, datasetProcessor: DatasetProcessor): Promise<Dataset> {
+		const columns: string[] = query.OPTIONS.COLUMNS;
+		for (const key of columns) {
+			const parsedKey = key.split("_");
+			if (parsedKey.length !== 2) {
+				throw new InsightError("ValidationError: Failure finding id.");
+			}
+			const id = parsedKey[0];
+			try {
+				// eslint-disable-next-line @ubccpsc310/descriptive/no-await-in-loop
+				const dataset = await datasetProcessor.getDataset(id);
+				return dataset; // Return the first valid dataset found
+			} catch {
+				// Ignore errors and continue checking other dataset IDs
+			}
+		}
+		throw new InsightError("ValidationError: Failure finding id.");
 	}
 
 	private validateQuery(query: any): void {
@@ -39,247 +60,53 @@ export class QueryEngine {
 		if (typeof query.OPTIONS !== "object") {
 			throw new InsightError("ValidationError: Query field 'OPTIONS' should be an object.");
 		}
+
 		if (!query.OPTIONS.COLUMNS) {
 			throw new InsightError("ValidationError: Query is missing required field 'COLUMNS'.");
 		}
-		if (!Array.isArray(query.OPTIONS.COLUMNS)) {
-			throw new InsightError("ValidationError: Query field 'COLUMNS' should be an array.");
+
+		if (!Array.isArray(query.OPTIONS.COLUMNS || query.OPTIONS.COLUMNS.length === 0)) {
+			throw new InsightError("ValidationError: Query field 'COLUMNS' must be a non-empty array.");
 		}
-		if (query.OPTIONS.COLUMNS.length === 0) {
-			throw new InsightError("ValidationError: Query field 'COLUMNS' cannot be empty.");
+
+		if (query.TRANSOFORMATIONS) {
+			this.validateTRANSFORMATIONS(query.TRANSOFORMATIONS);
+			// TODO check that every column corresponds to a key in GROUP or APPLY
 		}
-		if (query.OPTIONS.ORDER && typeof query.OPTIONS.ORDER !== "string") {
-			throw new InsightError("ValidationError: Invalid ORDER type.");
-		}
-		if (query.OPTIONS.ORDER && !query.OPTIONS.COLUMNS.includes(query.OPTIONS.ORDER)) {
-			throw new InsightError("ValidationError: Cannot order by non-existent columns.");
+
+		if (query.OPTIONS.SORT) {
+			this.validateSORT(query.OPTIONS.COLUMNS, query.OPTIONS.SORT);
 		}
 	}
 
-	private validateNumericKey(key: string, id: string): void {
-		const validNumericFields = ["avg", "pass", "fail", "audit", "year"];
-		const match = key.match(/^([^_]+)_([^_]+)$/);
-		if (!match) {
-			throw new InsightError(`ValidationError: Key is not properly formatted.`);
-		}
-		const [, reqid, field] = match;
-		if (reqid !== id) {
-			throw new InsightError(`ValidationError: Cannot query more than one dataset.'`);
-		}
-		if (!validNumericFields.includes(field)) {
-			throw new InsightError("ValidationError: Invalid numeric key.");
-		}
+	private validateTRANSFORMATIONS(transformations: any): void {
+		// TODO
 	}
 
-	private validateStringKey(key: string, id: string): void {
-		const validStringFields = ["dept", "id", "instructor", "title", "uuid"];
-		const match = key.match(/^([^_]+)_([^_]+)$/);
-		if (!match) {
-			throw new InsightError(`ValidationError: Key is not properly formatted.`);
-		}
-		const [, reqid, field] = match;
-		if (reqid !== id) {
-			throw new InsightError(`ValidationError: Cannot query more than one dataset.'`);
-		}
-		if (!validStringFields.includes(field)) {
-			throw new InsightError("ValidationError: Invalid string key.");
-		}
-	}
-
-	private validateColumnKey(key: string, id: string): void {
-		const validFields = ["dept", "id", "instructor", "title", "uuid", "avg", "pass", "fail", "audit", "year"];
-		const match = key.match(/^([^_]+)_([^_]+)$/);
-		if (!match) {
-			throw new InsightError(`ValidationError: Key is not properly formatted.`);
-		}
-		const [, reqid, field] = match;
-		if (reqid !== id) {
-			throw new InsightError(`ValidationError: Cannot query more than one dataset.'`);
-		}
-		if (!validFields.includes(field)) {
-			throw new InsightError("ValidationError: Invalid string key.");
-		}
-	}
-
-	private makeRegexPattern(value: string): string {
-		const removeSurroundingAsterisks = value.replace(/^\*|\*$/g, "");
-		if (removeSurroundingAsterisks.includes("*")) {
-			throw new InsightError("ValidationError: No asterisks allowed in middle of string.");
-		}
-		const keyStartsWithAsterisk = value.startsWith("*");
-		const keyEndsWithAsterisk = value.endsWith("*");
-
-		if (keyStartsWithAsterisk && keyEndsWithAsterisk) {
-			return `.*${removeSurroundingAsterisks}.*`;
-		} else if (keyStartsWithAsterisk) {
-			return `.*${removeSurroundingAsterisks}$`;
-		} else if (keyEndsWithAsterisk) {
-			return `^${removeSurroundingAsterisks}.*`;
+	private validateSORT(columns: any, sort: any): void {
+		if (typeof sort === "object") {
+			if (!("dir" in sort) || !("keys" in sort) || sort.keys.length !== 2) {
+				throw new InsightError("ValidationError: SORT object must contain only 'dir' and 'keys'.");
+			}
+			if (typeof sort.dir !== "string" || !["UP", "DOWN"].includes(sort.dir)) {
+				throw new InsightError("ValidationError: SORT.dir must be a string.");
+			}
+			if (
+				!Array.isArray(sort.keys) ||
+				sort.keys.length === 0 ||
+				sort.keys.some((key: any) => typeof key !== "string")
+			) {
+				throw new InsightError("ValidationError: SORT.keys must be a non-empty array of strings.");
+			}
+			if (!sort.keys.every((key: any) => columns.includes(key))) {
+				throw new InsightError("ValidationError: SORT.keys must all be present in COLUMNS.");
+			}
+		} else if (typeof sort === "string") {
+			if (!columns.includes(sort)) {
+				throw new InsightError("ValidationError: SORT must be a key present in COLUMNS.");
+			}
 		} else {
-			return `^${value}$`;
+			throw new InsightError("ValidationError: SORT must be a string or an object.");
 		}
-	}
-
-	private filter(where: any, id: string, dataset: Dataset): Dataset {
-		const validFilterKeys = ["AND", "OR", "NOT", "GT", "LT", "EQ", "IS"];
-		if (Object.keys(where).length === 0) {
-			return dataset;
-		}
-		if (Object.keys(where).length !== 1) {
-			throw new InsightError("ValidationError: Should only have one key.");
-		}
-		const filterKey = Object.keys(where)[0];
-		if (!validFilterKeys.includes(filterKey)) {
-			throw new InsightError(`ValidationError: Invalid filter key.`);
-		}
-
-		const predicate = this.makePredicate(where, id);
-		const filteredSections = dataset.sections.filter(predicate);
-		return new Dataset(dataset.id, filteredSections, dataset.kind);
-	}
-
-	private makePredicate(filter: any, id: string): Predicate {
-		const filterKey = Object.keys(filter)[0];
-		switch (filterKey) {
-			case "AND":
-				return this.handleAND(filter.AND, id);
-			case "OR":
-				return this.handleOR(filter.OR, id);
-			case "NOT":
-				return this.handleNOT(filter.NOT, id);
-			case "GT":
-			case "LT":
-			case "EQ":
-				return this.handleComp(filter[filterKey], filterKey, id);
-			case "IS":
-				return this.handleIS(filter.IS, id);
-			default:
-				throw new InsightError("ValidationError: Invalid filter key.");
-		}
-	}
-
-	private handleAND(andArray: any[], id: string): Predicate {
-		if (!Array.isArray(andArray) || andArray.length === 0) {
-			throw new InsightError("ValidationError: AND must be a non-empty array.");
-		}
-		const predicates = andArray.map((subFilter) => this.makePredicate(subFilter, id));
-		return (section: Section) => predicates.every((pred) => pred(section));
-	}
-
-	private handleOR(orArray: any[], id: string): Predicate {
-		if (!Array.isArray(orArray) || orArray.length === 0) {
-			throw new InsightError("ValidationError: OR must be a non-empty array.");
-		}
-		const predicates = orArray.map((subFilter) => this.makePredicate(subFilter, id));
-		return (section: Section) => predicates.some((pred) => pred(section));
-	}
-
-	private handleNOT(notObj: any, id: string): Predicate {
-		if (typeof notObj !== "object" || Array.isArray(notObj)) {
-			throw new InsightError("ValidationError: Must contain a valid filter object.");
-		}
-		if (Object.keys(notObj).length !== 1) {
-			throw new InsightError("ValidationError: Should only have one key.");
-		}
-		const predicate = this.makePredicate(notObj, id);
-		return (section: Section) => !predicate(section);
-	}
-
-	private handleComp(compObj: any, comp: string, id: string): Predicate {
-		if (typeof compObj !== "object" || Array.isArray(compObj)) {
-			throw new InsightError("ValidationError: Must contain a valid filter object.");
-		}
-		if (Object.keys(compObj).length !== 1) {
-			throw new InsightError("ValidationError: Should only have one key.");
-		}
-		const key = Object.keys(compObj)[0];
-		const value = compObj[key];
-		if (typeof value !== "number") {
-			throw new InsightError("ValidationError: Comparison requires numeric value.");
-		}
-		this.validateNumericKey(key, id);
-
-		const field = key.split("_")[1];
-		return (section: Section) => {
-			const sectionValue = section.get(field);
-			if (typeof sectionValue !== "number") {
-				return false;
-			}
-			switch (comp) {
-				case "GT":
-					return sectionValue > value;
-				case "LT":
-					return sectionValue < value;
-				case "EQ":
-					return sectionValue === value;
-				default:
-					return false;
-			}
-		};
-	}
-
-	private handleIS(isObj: any, id: string): Predicate {
-		if (typeof isObj !== "object" || Array.isArray(isObj)) {
-			throw new InsightError("ValidationError: Must contain a valid filter object.");
-		}
-		if (Object.keys(isObj).length !== 1) {
-			throw new InsightError("ValidationError: Should only have one key.");
-		}
-
-		const key = Object.keys(isObj)[0];
-		const value = isObj[key];
-		if (typeof value !== "string") {
-			throw new InsightError("ValidationError: IS filter requires a string value.");
-		}
-
-		this.validateStringKey(key, id);
-		const regexPattern = this.makeRegexPattern(value);
-		const field = key.split("_")[1];
-
-		const regex = new RegExp(regexPattern);
-		return (section: Section) => {
-			const fieldValue = section.get(field);
-			return typeof fieldValue === "string" && regex.test(fieldValue);
-		};
-	}
-
-	private handleOPTIONS(options: any, id: string, filteredDataset: Dataset): InsightResult[] {
-		const result = this.handleCOLUMNS(options.COLUMNS, filteredDataset, id);
-		if (options.ORDER) {
-			this.handleORDER(options.ORDER, options.COLUMNS, result);
-		}
-		return result;
-	}
-
-	private handleCOLUMNS(columnKeys: string[], filteredDataset: Dataset, id: string): InsightResult[] {
-		if (!columnKeys || !Array.isArray(columnKeys) || columnKeys.length === 0) {
-			throw new InsightError("ValidationError: COLUMNS must be a non-empty array.");
-		}
-		return filteredDataset.sections.map((section) => {
-			const row: InsightResult = {};
-			columnKeys.forEach((key) => {
-				this.validateColumnKey(key, id);
-				const field = key.split("_")[1];
-				row[key] = section.get(field);
-			});
-			return row;
-		});
-	}
-
-	private handleORDER(order: string, columns: string[], result: InsightResult[]): void {
-		if (!columns.includes(order)) {
-			throw new InsightError("ValidationError: ORDER must be in COLUMNS.");
-		}
-		result.sort((first, second) => {
-			const valA = first[order];
-			const valB = second[order];
-			if (typeof valA === "number" && typeof valB === "number") {
-				return valA - valB;
-			} else if (typeof valA === "string" && typeof valB === "string") {
-				return valA.localeCompare(valB);
-			} else {
-				return 0;
-			}
-		});
 	}
 }
