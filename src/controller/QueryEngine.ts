@@ -64,8 +64,7 @@ export class QueryEngine {
 		const dataset = await this.getRequestedDataset(query, datasetProcessor);
 		if (dataset.kind === "sections") {
 			return this.sectionEngine.performQuery(query, dataset);
-		}
-		else if (dataset.kind === "rooms") {
+		} else if (dataset.kind === "rooms") {
 			return this.roomEngine.performQuery(query.WHERE, dataset);
 		}
 		throw new InsightError("ValidationError: Invalid dataset kind.");
