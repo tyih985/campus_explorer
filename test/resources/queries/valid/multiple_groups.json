@@ -1,0 +1,188 @@
+{
+  "title": "SELECT dept, apply key, maxAverage WHERE dept = 'an*' GROUP BY dept, id APPLY apply key = Count(instructor), maxAverage = Max(avg)",
+  "input": {
+    "WHERE": {
+      "IS": {
+        "sections_dept": "an*"
+      }
+    },
+    "OPTIONS": {
+      "COLUMNS": [
+        "sections_dept",
+        "apply key",
+        "maxAverage"
+      ]
+    },
+    "TRANSFORMATIONS": {
+      "GROUP": [
+        "sections_dept",
+        "sections_id"
+      ],
+      "APPLY": [
+        {
+          "apply key": {
+            "COUNT": "sections_instructor"
+          }
+        },
+        {
+          "maxAverage": {
+            "MAX": "sections_avg"
+          }
+        }
+      ]
+    }
+  },
+  "errorExpected": false,
+  "expected": [
+    {
+      "sections_dept": "anat",
+      "apply key": 3,
+      "maxAverage": 86.29
+    },
+    {
+      "sections_dept": "anat",
+      "apply key": 3,
+      "maxAverage": 92
+    },
+    {
+      "sections_dept": "anat",
+      "apply key": 2,
+      "maxAverage": 91.67
+    },
+    {
+      "sections_dept": "anat",
+      "apply key": 3,
+      "maxAverage": 89.6
+    },
+    {
+      "sections_dept": "anth",
+      "apply key": 2,
+      "maxAverage": 76.25
+    },
+    {
+      "sections_dept": "anth",
+      "apply key": 4,
+      "maxAverage": 75.35
+    },
+    {
+      "sections_dept": "anth",
+      "apply key": 2,
+      "maxAverage": 72.21
+    },
+    {
+      "sections_dept": "anth",
+      "apply key": 5,
+      "maxAverage": 75.86
+    },
+    {
+      "sections_dept": "anth",
+      "apply key": 4,
+      "maxAverage": 84.67
+    },
+    {
+      "sections_dept": "anth",
+      "apply key": 6,
+      "maxAverage": 78.86
+    },
+    {
+      "sections_dept": "anth",
+      "apply key": 5,
+      "maxAverage": 77.36
+    },
+    {
+      "sections_dept": "anth",
+      "apply key": 2,
+      "maxAverage": 77.81
+    },
+    {
+      "sections_dept": "anth",
+      "apply key": 3,
+      "maxAverage": 80.07
+    },
+    {
+      "sections_dept": "anth",
+      "apply key": 3,
+      "maxAverage": 77.17
+    },
+    {
+      "sections_dept": "anth",
+      "apply key": 2,
+      "maxAverage": 75.7
+    },
+    {
+      "sections_dept": "anth",
+      "apply key": 6,
+      "maxAverage": 81.06
+    },
+    {
+      "sections_dept": "anth",
+      "apply key": 5,
+      "maxAverage": 79
+    },
+    {
+      "sections_dept": "anth",
+      "apply key": 3,
+      "maxAverage": 82
+    },
+    {
+      "sections_dept": "anth",
+      "apply key": 2,
+      "maxAverage": 77.14
+    },
+    {
+      "sections_dept": "anth",
+      "apply key": 2,
+      "maxAverage": 74
+    },
+    {
+      "sections_dept": "anth",
+      "apply key": 2,
+      "maxAverage": 79.42
+    },
+    {
+      "sections_dept": "anth",
+      "apply key": 2,
+      "maxAverage": 80.86
+    },
+    {
+      "sections_dept": "anth",
+      "apply key": 2,
+      "maxAverage": 86.17
+    },
+    {
+      "sections_dept": "anth",
+      "apply key": 5,
+      "maxAverage": 90.92
+    },
+    {
+      "sections_dept": "anth",
+      "apply key": 2,
+      "maxAverage": 85.2
+    },
+    {
+      "sections_dept": "anth",
+      "apply key": 5,
+      "maxAverage": 88.67
+    },
+    {
+      "sections_dept": "anth",
+      "apply key": 3,
+      "maxAverage": 88.25
+    },
+    {
+      "sections_dept": "anth",
+      "apply key": 3,
+      "maxAverage": 92.29
+    },
+    {
+      "sections_dept": "anth",
+      "apply key": 2,
+      "maxAverage": 88.38
+    },
+    {
+      "sections_dept": "anth",
+      "apply key": 2,
+      "maxAverage": 86.67
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "title": "Query with wrong query key type in SUM",
+  "input": {
+    "WHERE": {
+      "IS": {
+        "sections_dept": "an*"
+      }
+    },
+    "OPTIONS": {
+      "COLUMNS": [
+        "sections_dept",
+        "apply key",
+        "sumAverage"
+      ]
+    },
+    "TRANSFORMATIONS": {
+      "GROUP": [
+        "sections_dept", "sections_id"
+      ],
+      "APPLY": [
+        {
+          "apply key": {
+            "COUNT": "sections_instructor"
+          }
+        },
+        {
+          "sumAverage": {
+            "SUM": "sections_dept"
+          }
+        }
+      ]
+    }
+  },
+  "errorExpected": true,
+  "expected": "InsightError"
+}
