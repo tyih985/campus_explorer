@@ -1,0 +1,68 @@
+{
+  "title": "SELECT name, address, type WHERE seats > 300 ORDER UP BY address, type, name",
+  "input": {
+    "WHERE": {
+      "GT": {
+        "rooms_seats": 300
+      }
+    },
+    "OPTIONS": {
+      "COLUMNS": [
+        "rooms_name",
+        "rooms_address",
+        "rooms_type"
+      ],
+      "ORDER": {
+        "dir": "UP",
+        "keys": [
+          "rooms_address",
+          "rooms_type",
+          "rooms_name"
+        ]
+      }
+    }
+  },
+  "errorExpected": false,
+  "expected": [
+    {
+      "rooms_name": "HEBB_100",
+      "rooms_address": "2045 East Mall",
+      "rooms_type": "Tiered Large Group"
+    },
+    {
+      "rooms_name": "WOOD_2",
+      "rooms_address": "2194 Health Sciences Mall",
+      "rooms_type": "Tiered Large Group"
+    },
+    {
+      "rooms_name": "ESB_1013",
+      "rooms_address": "2207 Main Mall",
+      "rooms_type": "Tiered Large Group"
+    },
+    {
+      "rooms_name": "CIRS_1250",
+      "rooms_address": "2260 West Mall, V6T 1Z4",
+      "rooms_type": "Tiered Large Group"
+    },
+    {
+      "rooms_name": "LSC_1001",
+      "rooms_address": "2350 Health Sciences Mall",
+      "rooms_type": "Tiered Large Group"
+    },
+    {
+      "rooms_name": "LSC_1002",
+      "rooms_address": "2350 Health Sciences Mall",
+      "rooms_type": "Tiered Large Group"
+    },
+    {
+      "rooms_name": "OSBO_A",
+      "rooms_address": "6108 Thunderbird Boulevard",
+      "rooms_type": "Open Design General Purpose"
+    },
+    {
+      "rooms_name": "WESB_100",
+      "rooms_address": "6174 University Boulevard",
+      "rooms_type": "Tiered Large Group"
+    }
+  ]
+}
