@@ -1,0 +1,203 @@
+{
+  "title": "SELECT address, overallCapacity GROUP BY rooms_address APPLY overallCapacity = SUM(seats)",
+  "input": {
+    "WHERE": {},
+    "OPTIONS": {
+      "COLUMNS": [
+        "rooms_address",
+        "overallCapacity"
+      ]
+    },
+    "TRANSFORMATIONS": {
+      "GROUP": [
+        "rooms_address"
+      ],
+      "APPLY": [
+        {
+          "overallCapacity": {
+            "SUM": "rooms_seats"
+          }
+        }
+      ]
+    }
+  },
+  "errorExpected": false,
+  "expected": [
+    {
+      "rooms_address": "1822 East Mall",
+      "overallCapacity": 228
+    },
+    {
+      "rooms_address": "6303 North West Marine Drive",
+      "overallCapacity": 186
+    },
+    {
+      "rooms_address": "2202 Main Mall",
+      "overallCapacity": 144
+    },
+    {
+      "rooms_address": "1924 West Mall",
+      "overallCapacity": 41
+    },
+    {
+      "rooms_address": "6270 University Boulevard",
+      "overallCapacity": 336
+    },
+    {
+      "rooms_address": "1874 East Mall",
+      "overallCapacity": 94
+    },
+    {
+      "rooms_address": "1866 Main Mall",
+      "overallCapacity": 3190
+    },
+    {
+      "rooms_address": "2260 West Mall, V6T 1Z4",
+      "overallCapacity": 426
+    },
+    {
+      "rooms_address": "2360 East Mall V6T 1Z3",
+      "overallCapacity": 354
+    },
+    {
+      "rooms_address": "2036 Main Mall",
+      "overallCapacity": 913
+    },
+    {
+      "rooms_address": "6250 Applied Science Lane",
+      "overallCapacity": 289
+    },
+    {
+      "rooms_address": "6339 Stores Road",
+      "overallCapacity": 50
+    },
+    {
+      "rooms_address": "2207 Main Mall",
+      "overallCapacity": 580
+    },
+    {
+      "rooms_address": "2205 East Mall",
+      "overallCapacity": 263
+    },
+    {
+      "rooms_address": "2424 Main Mall",
+      "overallCapacity": 621
+    },
+    {
+      "rooms_address": "6350 Stores Road",
+      "overallCapacity": 142
+    },
+    {
+      "rooms_address": "6333 Memorial Road",
+      "overallCapacity": 325
+    },
+    {
+      "rooms_address": "2177 Wesbrook Mall V6T 1Z3",
+      "overallCapacity": 160
+    },
+    {
+      "rooms_address": "1984 West Mall",
+      "overallCapacity": 619
+    },
+    {
+      "rooms_address": "2045 East Mall",
+      "overallCapacity": 537
+    },
+    {
+      "rooms_address": "6224 Agricultural Road",
+      "overallCapacity": 658
+    },
+    {
+      "rooms_address": "2053 Main Mall",
+      "overallCapacity": 1546
+    },
+    {
+      "rooms_address": "6245 Agronomy Road V6T 1Z4",
+      "overallCapacity": 440
+    },
+    {
+      "rooms_address": "6000 Iona Drive",
+      "overallCapacity": 150
+    },
+    {
+      "rooms_address": "1961 East Mall V6T 1Z1",
+      "overallCapacity": 568
+    },
+    {
+      "rooms_address": "2080 West Mall",
+      "overallCapacity": 201
+    },
+    {
+      "rooms_address": "6356 Agricultural Road",
+      "overallCapacity": 505
+    },
+    {
+      "rooms_address": "2350 Health Sciences Mall",
+      "overallCapacity": 825
+    },
+    {
+      "rooms_address": "2356 Main Mall",
+      "overallCapacity": 503
+    },
+    {
+      "rooms_address": "2357 Main Mall",
+      "overallCapacity": 573
+    },
+    {
+      "rooms_address": "1984 Mathematics Road",
+      "overallCapacity": 495
+    },
+    {
+      "rooms_address": "1986 Mathematics Road",
+      "overallCapacity": 106
+    },
+    {
+      "rooms_address": "2125 Main Mall",
+      "overallCapacity": 1004
+    },
+    {
+      "rooms_address": "6363 Agronomy Road",
+      "overallCapacity": 662
+    },
+    {
+      "rooms_address": "2405 Wesbrook Mall",
+      "overallCapacity": 538
+    },
+    {
+      "rooms_address": "6445 University Boulevard",
+      "overallCapacity": 240
+    },
+    {
+      "rooms_address": "6108 Thunderbird Boulevard",
+      "overallCapacity": 521
+    },
+    {
+      "rooms_address": "2206 East Mall",
+      "overallCapacity": 166
+    },
+    {
+      "rooms_address": "6000 Student Union Blvd",
+      "overallCapacity": 897
+    },
+    {
+      "rooms_address": "6331 Crescent Road V6T 1Z1",
+      "overallCapacity": 163
+    },
+    {
+      "rooms_address": "6081 University Blvd",
+      "overallCapacity": 65
+    },
+    {
+      "rooms_address": "6174 University Boulevard",
+      "overallCapacity": 427
+    },
+    {
+      "rooms_address": "2175 West Mall V6T 1Z4",
+      "overallCapacity": 1421
+    },
+    {
+      "rooms_address": "2194 Health Sciences Mall",
+      "overallCapacity": 1297
+    }
+  ]
+}

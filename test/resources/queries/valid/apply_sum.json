@@ -1,0 +1,76 @@
+{
+  "title": "SELECT shortname, apply key WHERE address contains Main Mall and lat < 100 GROUP BY shortname APPLY KEY = Sum(seats)",
+  "input": {
+    "WHERE": {
+      "AND": [
+        {
+          "IS": {
+            "rooms_address": "*Main Mall*"
+          }
+        },
+        {
+          "LT": {
+            "rooms_lat": 100
+          }
+        }
+      ]
+    },
+    "OPTIONS": {
+      "COLUMNS": [
+        "rooms_shortname",
+        "apply key"
+      ]
+    },
+    "TRANSFORMATIONS": {
+      "GROUP": [
+        "rooms_shortname"
+      ],
+      "APPLY": [
+        {
+          "apply key": {
+            "SUM": "rooms_seats"
+          }
+        }
+      ]
+    }
+  },
+  "errorExpected": false,
+  "expected": [
+    {
+      "rooms_shortname": "AERL",
+      "apply key": 144
+    },
+    {
+      "rooms_shortname": "BUCH",
+      "apply key": 3190
+    },
+    {
+      "rooms_shortname": "CHEM",
+      "apply key": 913
+    },
+    {
+      "rooms_shortname": "ESB",
+      "apply key": 580
+    },
+    {
+      "rooms_shortname": "FSC",
+      "apply key": 621
+    },
+    {
+      "rooms_shortname": "ANGU",
+      "apply key": 1546
+    },
+    {
+      "rooms_shortname": "MCLD",
+      "apply key": 503
+    },
+    {
+      "rooms_shortname": "MCML",
+      "apply key": 573
+    },
+    {
+      "rooms_shortname": "SCRF",
+      "apply key": 1004
+    }
+  ]
+}
