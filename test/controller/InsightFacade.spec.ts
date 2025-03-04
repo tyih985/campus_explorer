@@ -330,6 +330,7 @@ describe("InsightFacade", function () {
 			// Will *fail* if there is a problem reading ANY dataset.
 			const loadDatasetPromises: Promise<string[]>[] = [
 				facade.addDataset("sections", sections, InsightDatasetKind.Sections),
+				facade.addDataset("rooms", rooms, InsightDatasetKind.Rooms),
 			];
 
 			try {
@@ -364,6 +365,52 @@ describe("InsightFacade", function () {
 		it("[valid/lt.json] SELECT dept, pass WHERE pass < 1", checkQuery);
 		it("[valid/eq.json] SELECT dept, fail WHERE fail = 100", checkQuery);
 
+		it(
+			"[valid/apply_avg.json] SELECT shortname, apply key WHERE address contains Main Mall and lat < 100 GROUP BY shortname APPLY KEY = Avg(seats)",
+			checkQuery
+		);
+		it(
+			"[valid/apply_count.json] SELECT shortname, apply key WHERE address contains Main Mall and lat < 100 GROUP BY shortname APPLY KEY = Count(seats)",
+			checkQuery
+		);
+		it(
+			"[valid/apply_count_string.json] SELECT shortname, apply key FROM * GROUP BY shortname APPLY Count(furniture)",
+			checkQuery
+		);
+		it(
+			"[valid/apply_max.json] SELECT shortname, apply key WHERE address contains Main Mall and lat < 100 GROUP BY shortname APPLY KEY = Max(seats)",
+			checkQuery
+		);
+		it(
+			"[valid/apply_min.json] SELECT shortname, apply key WHERE address contains Main Mall and lat < 100 GROUP BY shortname APPLY KEY = Min(seats)",
+			checkQuery
+		);
+		it(
+			"[valid/apply_sum.json] SELECT shortname, apply key WHERE address contains Main Mall and lat < 100 GROUP BY shortname APPLY KEY = Sum(seats)",
+			checkQuery
+		);
+		it(
+			"[valid/multiple_apply.json] SELECT dept, apply key, maxAverage WHERE dept = 'a*' GROUP BY dept APPLY apply key = COUNT(instructor), maxAverage = MAX(avg)",
+			checkQuery
+		);
+		it(
+			"[valid/multiple_groups.json] SELECT dept, apply key, maxAverage WHERE dept = 'an*' GROUP BY dept, id APPLY apply key = Count(instructor), maxAverage = Max(avg)",
+			checkQuery
+		);
+		it(
+			"[valid/order_multiple_down.json] SELECT name, address, type WHERE seats > 30 ORDER DOWN BY address, type, name",
+			checkQuery
+		);
+		it(
+			"[valid/order_multiple_up.json] SELECT name, address, type WHERE seats > 300 ORDER UP BY address, type, name",
+			checkQuery
+		);
+		it("[valid/simple_rooms.json] SELECT shortname, maxSeats WHERE furniture = '*Tables*' and seats > 300", checkQuery);
+		it(
+			"[valid/simple_transformations.json] SELECT address, overallCapacity GROUP BY rooms_address APPLY overallCapacity = SUM(seats)",
+			checkQuery
+		);
+
 		it("[invalid/invalid.json] Query missing WHERE", checkQuery);
 		it("[invalid/invalid_query_key.json] Query where keys are invalid", checkQuery);
 		it("[invalid/too_large_results.json] Query selecting all entries", checkQuery);
@@ -377,5 +424,15 @@ describe("InsightFacade", function () {
 		it("[invalid/order_not_in_columns.json] Query where ORDER key not in COLUMNS", checkQuery);
 		it("[invalid/empty_filter.json] Query where AND is empty", checkQuery);
 		it("[invalid/invalid_filter.json] Query with invalid filter", checkQuery);
+
+		it("[invalid/empty_transformations.json] Query where TRANSFORMATIONS is empty", checkQuery);
+		it("[invalid/invalid_applykey.json] Query with invalid apply key", checkQuery);
+		it("[invalid/invalid_avg_apply.json] Query with wrong query key type in AVG", checkQuery);
+		it("[invalid/invalid_columns_groups.json] Query where COLUMNS keys are not one of GROUPS or APPLY", checkQuery);
+		it("[invalid/invalid_max_apply.json] Query with wrong query key type in MAX", checkQuery);
+		it("[invalid/invalid_min_apply.json] Query with wrong query key type in MIN", checkQuery);
+		it("[invalid/invalid_order_dir.json] Query where ORDER has invalid dir", checkQuery);
+		it("[invalid/invalid_sum_apply.json] Query with wrong query key type in SUM", checkQuery);
+		it("[invalid/same_applykey.json] Query with duplicate apply key", checkQuery);
 	});
 });
