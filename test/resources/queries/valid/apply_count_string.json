@@ -1,0 +1,203 @@
+{
+  "title": "SELECT shortname, apply key FROM * GROUP BY shortname APPLY Count(furniture)",
+  "input": {
+    "WHERE": {},
+    "OPTIONS": {
+      "COLUMNS": [
+        "rooms_shortname",
+        "apply key"
+      ]
+    },
+    "TRANSFORMATIONS": {
+      "GROUP": [
+        "rooms_shortname"
+      ],
+      "APPLY": [
+        {
+          "apply key": {
+            "COUNT": "rooms_furniture"
+          }
+        }
+      ]
+    }
+  },
+  "errorExpected": false,
+  "expected": [
+    {
+      "rooms_shortname": "ALRD",
+      "apply key": 2
+    },
+    {
+      "rooms_shortname": "ANSO",
+      "apply key": 3
+    },
+    {
+      "rooms_shortname": "AERL",
+      "apply key": 1
+    },
+    {
+      "rooms_shortname": "AUDX",
+      "apply key": 1
+    },
+    {
+      "rooms_shortname": "BIOL",
+      "apply key": 3
+    },
+    {
+      "rooms_shortname": "BRKX",
+      "apply key": 2
+    },
+    {
+      "rooms_shortname": "BUCH",
+      "apply key": 7
+    },
+    {
+      "rooms_shortname": "CIRS",
+      "apply key": 1
+    },
+    {
+      "rooms_shortname": "CHBE",
+      "apply key": 2
+    },
+    {
+      "rooms_shortname": "CHEM",
+      "apply key": 1
+    },
+    {
+      "rooms_shortname": "CEME",
+      "apply key": 3
+    },
+    {
+      "rooms_shortname": "EOSM",
+      "apply key": 1
+    },
+    {
+      "rooms_shortname": "ESB",
+      "apply key": 3
+    },
+    {
+      "rooms_shortname": "FNH",
+      "apply key": 3
+    },
+    {
+      "rooms_shortname": "FSC",
+      "apply key": 3
+    },
+    {
+      "rooms_shortname": "FORW",
+      "apply key": 2
+    },
+    {
+      "rooms_shortname": "LASR",
+      "apply key": 4
+    },
+    {
+      "rooms_shortname": "FRDM",
+      "apply key": 1
+    },
+    {
+      "rooms_shortname": "GEOG",
+      "apply key": 4
+    },
+    {
+      "rooms_shortname": "HEBB",
+      "apply key": 2
+    },
+    {
+      "rooms_shortname": "HENN",
+      "apply key": 2
+    },
+    {
+      "rooms_shortname": "ANGU",
+      "apply key": 2
+    },
+    {
+      "rooms_shortname": "DMP",
+      "apply key": 2
+    },
+    {
+      "rooms_shortname": "IONA",
+      "apply key": 2
+    },
+    {
+      "rooms_shortname": "IBLC",
+      "apply key": 5
+    },
+    {
+      "rooms_shortname": "SOWK",
+      "apply key": 2
+    },
+    {
+      "rooms_shortname": "LSK",
+      "apply key": 2
+    },
+    {
+      "rooms_shortname": "LSC",
+      "apply key": 1
+    },
+    {
+      "rooms_shortname": "MCLD",
+      "apply key": 2
+    },
+    {
+      "rooms_shortname": "MCML",
+      "apply key": 4
+    },
+    {
+      "rooms_shortname": "MATH",
+      "apply key": 3
+    },
+    {
+      "rooms_shortname": "MATX",
+      "apply key": 1
+    },
+    {
+      "rooms_shortname": "SCRF",
+      "apply key": 3
+    },
+    {
+      "rooms_shortname": "ORCH",
+      "apply key": 5
+    },
+    {
+      "rooms_shortname": "PHRM",
+      "apply key": 2
+    },
+    {
+      "rooms_shortname": "PCOH",
+      "apply key": 3
+    },
+    {
+      "rooms_shortname": "OSBO",
+      "apply key": 2
+    },
+    {
+      "rooms_shortname": "SPPH",
+      "apply key": 2
+    },
+    {
+      "rooms_shortname": "SRC",
+      "apply key": 1
+    },
+    {
+      "rooms_shortname": "UCLL",
+      "apply key": 3
+    },
+    {
+      "rooms_shortname": "MGYM",
+      "apply key": 1
+    },
+    {
+      "rooms_shortname": "WESB",
+      "apply key": 1
+    },
+    {
+      "rooms_shortname": "SWNG",
+      "apply key": 3
+    },
+    {
+      "rooms_shortname": "WOOD",
+      "apply key": 4
+    }
+  ]
+}
