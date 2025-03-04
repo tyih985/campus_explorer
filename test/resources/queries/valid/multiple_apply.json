@@ -1,0 +1,127 @@
+{
+  "title": "SELECT dept, apply key, maxAverage WHERE dept = 'a*' GROUP BY dept APPLY apply key = COUNT(instructor), maxAverage = MAX(avg)",
+  "input": {
+    "WHERE": {
+      "IS": {
+        "sections_dept": "a*"
+      }
+    },
+    "OPTIONS": {
+      "COLUMNS": [
+        "sections_dept",
+        "apply key",
+        "maxAverage"
+      ]
+    },
+    "TRANSFORMATIONS": {
+      "GROUP": [
+        "sections_dept"
+      ],
+      "APPLY": [
+        {
+          "apply key": {
+            "COUNT": "sections_instructor"
+          }
+        },
+        {
+          "maxAverage": {
+            "MAX": "sections_avg"
+          }
+        }
+      ]
+    }
+  },
+  "errorExpected": false,
+  "expected": [
+    {
+      "sections_dept": "aanb",
+      "apply key": 1,
+      "maxAverage": 94.44
+    },
+    {
+      "sections_dept": "adhe",
+      "apply key": 15,
+      "maxAverage": 96.11
+    },
+    {
+      "sections_dept": "anat",
+      "apply key": 5,
+      "maxAverage": 92
+    },
+    {
+      "sections_dept": "anth",
+      "apply key": 41,
+      "maxAverage": 92.29
+    },
+    {
+      "sections_dept": "apbi",
+      "apply key": 55,
+      "maxAverage": 91.86
+    },
+    {
+      "sections_dept": "appp",
+      "apply key": 5,
+      "maxAverage": 85.16
+    },
+    {
+      "sections_dept": "apsc",
+      "apply key": 85,
+      "maxAverage": 96
+    },
+    {
+      "sections_dept": "arbc",
+      "apply key": 2,
+      "maxAverage": 83.13
+    },
+    {
+      "sections_dept": "arch",
+      "apply key": 85,
+      "maxAverage": 90
+    },
+    {
+      "sections_dept": "arcl",
+      "apply key": 7,
+      "maxAverage": 80.82
+    },
+    {
+      "sections_dept": "arst",
+      "apply key": 32,
+      "maxAverage": 96.94
+    },
+    {
+      "sections_dept": "arth",
+      "apply key": 47,
+      "maxAverage": 93
+    },
+    {
+      "sections_dept": "asia",
+      "apply key": 59,
+      "maxAverage": 86.24
+    },
+    {
+      "sections_dept": "asic",
+      "apply key": 3,
+      "maxAverage": 80.79
+    },
+    {
+      "sections_dept": "astr",
+      "apply key": 25,
+      "maxAverage": 91.4
+    },
+    {
+      "sections_dept": "astu",
+      "apply key": 8,
+      "maxAverage": 83.14
+    },
+    {
+      "sections_dept": "atsc",
+      "apply key": 14,
+      "maxAverage": 92
+    },
+    {
+      "sections_dept": "audi",
+      "apply key": 52,
+      "maxAverage": 96.9
+    }
+  ]
+}

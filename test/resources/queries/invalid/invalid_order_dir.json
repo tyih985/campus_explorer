@@ -1,0 +1,22 @@
+{
+  "title": "Query where ORDER has invalid dir",
+  "input": {
+    "WHERE": {},
+    "OPTIONS": {
+      "COLUMNS": [
+        "rooms_name",
+        "rooms_address",
+        "rooms_type"
+      ],
+      "ORDER": {
+        "dir": "DESCENDING",
+        "keys": [
+          "rooms_address",
+          "rooms_type"
+        ]
+      }
+    }
+  },
+  "errorExpected": true,
+  "expected": "InsightError"
+}
