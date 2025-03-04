@@ -1,16 +1,62 @@
 import { InsightError, InsightResult } from "./IInsightFacade";
 import { DatasetProcessor } from "./DatasetProcessor";
 import { SectionEngine } from "./SectionEngine";
-// import { RoomEngine } from "./RoomEngine";
+import { RoomEngine } from "./RoomEngine";
 import { Dataset } from "./Dataset";
+
+export function makeRegexPattern(value: string): string {
+	const removeSurroundingAsterisks = value.replace(/^\*|\*$/g, "");
+	if (removeSurroundingAsterisks.includes("*")) {
+		throw new InsightError("ValidationError: No asterisks allowed in middle of string.");
+	}
+	const keyStartsWithAsterisk = value.startsWith("*");
+	const keyEndsWithAsterisk = value.endsWith("*");
+
+	if (keyStartsWithAsterisk && keyEndsWithAsterisk) {
+		return `.*${removeSurroundingAsterisks}.*`;
+	} else if (keyStartsWithAsterisk) {
+		return `.*${removeSurroundingAsterisks}$`;
+	} else if (keyEndsWithAsterisk) {
+		return `^${removeSurroundingAsterisks}.*`;
+	} else {
+		return `^${value}$`;
+	}
+}
+
+export function handleORDERsingle(order: string, result: InsightResult[]): void {
+	result.sort((first, second) => {
+		const valA = first[order];
+		const valB = second[order];
+		if (valA < valB) {
+			return -1;
+		} else if (valA > valB) {
+			return 1;
+		} else {
+			return 0;
+		}
+	});
+}
+
+export function handleORDERmulti(order: any, result: InsightResult[]): void {
+	const direction = order.dir === "UP" ? 1 : -1;
+	result.sort((first, second) => {
+		for (const key of order.keys) {
+			const valA = first[key];
+			const valB = second[key];
+			if (valA < valB) return -1 * direction;
+			if (valA > valB) return 1 * direction;
+		}
+		return 0;
+	});
+}
 
 export class QueryEngine {
 	private sectionEngine: SectionEngine;
-	// private roomEngine: RoomEngine;
+	private roomEngine: RoomEngine;
 
 	constructor() {
 		this.sectionEngine = new SectionEngine();
-		// this.roomEngine = new RoomEngine();
+		this.roomEngine = new RoomEngine();
 	}
 
 	public async performQuery(query: any, datasetProcessor: DatasetProcessor): Promise<InsightResult[]> {
@@ -19,9 +65,9 @@ export class QueryEngine {
 		if (dataset.kind === "sections") {
 			return this.sectionEngine.performQuery(query, dataset);
 		}
-		// else if (dataset.kind === "rooms") {
-		// 	return this.roomEngine.performQuery(query.WHERE, dataset);
-		// }
+		else if (dataset.kind === "rooms") {
+			return this.roomEngine.performQuery(query.WHERE, dataset);
+		}
 		throw new InsightError("ValidationError: Invalid dataset kind.");
 	}
 
@@ -35,8 +81,7 @@ export class QueryEngine {
 			const id = parsedKey[0];
 			try {
 				// eslint-disable-next-line @ubccpsc310/descriptive/no-await-in-loop
-				const dataset = await datasetProcessor.getDataset(id);
-				return dataset; // Return the first valid dataset found
+				return await datasetProcessor.getDataset(id);
 			} catch {
 				// Ignore errors and continue checking other dataset IDs
 			}
@@ -45,68 +90,131 @@ export class QueryEngine {
 	}
 
 	private validateQuery(query: any): void {
-		if (typeof query !== "object" || query === null) {
+		if (typeof query !== "object" || query === null || Array.isArray(query)) {
 			throw new InsightError("ValidationError: Query must be an object.");
 		}
+
+		this.validateWHEREandOPTIONS(query);
+
+		if (query.TRANSFORMATIONS) {
+			this.validateTRANSFORMATIONS(query.TRANSFORMATIONS);
+			this.validateCOLUMNS(query.OPTIONS.COLUMNS, query.TRANSFORMATIONS);
+		}
+
+		if (query.OPTIONS.ORDER) {
+			this.validateORDER(query.OPTIONS.ORDER, query.OPTIONS.COLUMNS);
+		}
+	}
+
+	private validateWHEREandOPTIONS(query: any): void {
 		if (!query.WHERE) {
 			throw new InsightError("ValidationError: Query is missing required field 'WHERE'.");
 		}
-		if (typeof query.WHERE !== "object" || Array.isArray(query)) {
+		if (typeof query.WHERE !== "object" || Array.isArray(query.WHERE)) {
 			throw new InsightError("ValidationError: Query field 'WHERE' should be an object.");
 		}
 		if (!query.OPTIONS) {
 			throw new InsightError("ValidationError: Query is missing required field 'OPTIONS'.");
 		}
-		if (typeof query.OPTIONS !== "object") {
+		if (typeof query.OPTIONS !== "object" || Array.isArray(query.OPTIONS)) {
 			throw new InsightError("ValidationError: Query field 'OPTIONS' should be an object.");
 		}
-
 		if (!query.OPTIONS.COLUMNS) {
 			throw new InsightError("ValidationError: Query is missing required field 'COLUMNS'.");
 		}
-
-		if (!Array.isArray(query.OPTIONS.COLUMNS || query.OPTIONS.COLUMNS.length === 0)) {
+		if (!Array.isArray(query.OPTIONS.COLUMNS) || query.OPTIONS.COLUMNS.length === 0) {
 			throw new InsightError("ValidationError: Query field 'COLUMNS' must be a non-empty array.");
-		}
-
-		if (query.TRANSOFORMATIONS) {
-			this.validateTRANSFORMATIONS(query.TRANSOFORMATIONS);
-			// TODO check that every column corresponds to a key in GROUP or APPLY
-		}
-
-		if (query.OPTIONS.SORT) {
-			this.validateSORT(query.OPTIONS.COLUMNS, query.OPTIONS.SORT);
 		}
 	}
 
 	private validateTRANSFORMATIONS(transformations: any): void {
-		// TODO
+		if (typeof transformations !== "object") {
+			throw new InsightError("ValidationError: Query field 'TRANSFORMATIONS' should be an object.");
+		}
+		if (!transformations.GROUP || !transformations.APPLY || Object.keys(transformations).length !== 2) {
+			throw new InsightError("ValidationError: ORDER object must contain only 'dir' and 'keys'.");
+		}
+		if (
+			!Array.isArray(transformations.GROUP) ||
+			transformations.GROUP.length === 0 ||
+			transformations.GROUP.some((key: any) => typeof key !== "string")
+		) {
+			throw new InsightError("ValidationError: 'GROUP' must be a non-empty array of strings.");
+		}
+
+		if (!Array.isArray(transformations.APPLY)) {
+			throw new InsightError("ValidationError: 'APPLY' must be an array of objects.");
+		}
+
+		this.validateAPPLY(transformations.APPLY);
 	}
 
-	private validateSORT(columns: any, sort: any): void {
-		if (typeof sort === "object") {
-			if (!("dir" in sort) || !("keys" in sort) || sort.keys.length !== 2) {
-				throw new InsightError("ValidationError: SORT object must contain only 'dir' and 'keys'.");
+	private validateAPPLY(apply: any[]): void {
+		for (const applyObj of apply) {
+			if (typeof applyObj !== "object" || applyObj === null || Array.isArray(applyObj)) {
+				throw new InsightError("ValidationError: Each entry in 'APPLY' must be an object.");
 			}
-			if (typeof sort.dir !== "string" || !["UP", "DOWN"].includes(sort.dir)) {
-				throw new InsightError("ValidationError: SORT.dir must be a string.");
+			const keys = Object.keys(applyObj);
+			if (keys.length !== 1) {
+				throw new InsightError("ValidationError: Each 'APPLY' object must have exactly one key.");
+			}
+			const applyKey = keys[0];
+			const applyTokenObj = applyObj[applyKey];
+			if (typeof applyTokenObj !== "object" || applyTokenObj === null || Array.isArray(applyTokenObj)) {
+				throw new InsightError("ValidationError: The value of an 'APPLY' key must be an object.");
+			}
+			const applyTokenKeys = Object.keys(applyTokenObj);
+			if (applyTokenKeys.length !== 1) {
+				throw new InsightError("ValidationError: The 'APPLY' object must have exactly one APPLYTOKEN key.");
+			}
+			const applyToken = applyTokenKeys[0];
+			const validApplyTokens = ["MAX", "MIN", "AVG", "COUNT", "SUM"];
+			if (!validApplyTokens.includes(applyToken)) {
+				throw new InsightError(`ValidationError: Invalid APPLYTOKEN.`);
+			}
+			const field = applyTokenObj[applyToken];
+			if (typeof field !== "string") {
+				throw new InsightError("ValidationError: APPLYTOKEN value must be a string.");
+			}
+		}
+	}
+
+	private validateCOLUMNS(columns: any, transformations: any): void {
+		const groupKeys = new Set(transformations.GROUP);
+		const applyKeys = new Set(transformations.APPLY.map((applyObj: any) => Object.keys(applyObj)[0]));
+		for (const column of columns) {
+			if (!groupKeys.has(column) && !applyKeys.has(column)) {
+				throw new InsightError(
+					`ValidationError: all COLUMNS keys must correspond to a GROUP key or applykey in APPLY.`
+				);
+			}
+		}
+	}
+
+	private validateORDER(order: any, columns: string[]): void {
+		if (typeof order === "object") {
+			if (!order.dir || !order.keys || Object.keys(order).length !== 2) {
+				throw new InsightError("ValidationError: ORDER object must contain only 'dir' and 'keys'.");
+			}
+			if (typeof order.dir !== "string" || !["UP", "DOWN"].includes(order.dir)) {
+				throw new InsightError("ValidationError: ORDER.dir must be a string.");
 			}
 			if (
-				!Array.isArray(sort.keys) ||
-				sort.keys.length === 0 ||
-				sort.keys.some((key: any) => typeof key !== "string")
+				!Array.isArray(order.keys) ||
+				order.keys.length === 0 ||
+				order.keys.some((key: any) => typeof key !== "string")
 			) {
-				throw new InsightError("ValidationError: SORT.keys must be a non-empty array of strings.");
+				throw new InsightError("ValidationError: ORDER.keys must be a non-empty array of strings.");
 			}
-			if (!sort.keys.every((key: any) => columns.includes(key))) {
-				throw new InsightError("ValidationError: SORT.keys must all be present in COLUMNS.");
+			if (!order.keys.every((key: any) => columns.includes(key))) {
+				throw new InsightError("ValidationError: ORDER.keys must all be present in COLUMNS.");
 			}
-		} else if (typeof sort === "string") {
-			if (!columns.includes(sort)) {
-				throw new InsightError("ValidationError: SORT must be a key present in COLUMNS.");
+		} else if (typeof order === "string") {
+			if (!columns.includes(order)) {
+				throw new InsightError("ValidationError: ORDER must be a key present in COLUMNS.");
 			}
 		} else {
-			throw new InsightError("ValidationError: SORT must be a string or an object.");
+			throw new InsightError("ValidationError: ORDER must be a string or an object.");
 		}
 	}
 }
