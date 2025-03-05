@@ -330,7 +330,7 @@ describe("InsightFacade", function () {
 			// Will *fail* if there is a problem reading ANY dataset.
 			const loadDatasetPromises: Promise<string[]>[] = [
 				facade.addDataset("sections", sections, InsightDatasetKind.Sections),
-				facade.addDataset("rooms", rooms, InsightDatasetKind.Rooms),
+				facade.addDataset("rooms", rooms, InsightDatasetKind.Rooms)
 			];
 
 			try {
@@ -434,5 +434,6 @@ describe("InsightFacade", function () {
 		it("[invalid/invalid_order_dir.json] Query where ORDER has invalid dir", checkQuery);
 		it("[invalid/invalid_sum_apply.json] Query with wrong query key type in SUM", checkQuery);
 		it("[invalid/same_applykey.json] Query with duplicate apply key", checkQuery);
+		it("[invalid/invalid_apply_field.json] Query where invalid field is in APPLY", checkQuery);
 	});
 });
