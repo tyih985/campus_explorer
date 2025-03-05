@@ -35,7 +35,7 @@ export class QueryEngine {
 		const promises: Array<Promise<Dataset | null>> = [];
 		for (const key of columns) {
 			const parsedKey = key.split("_");
-			if (parsedKey.length !== 2) {
+			if (key.includes("_") && parsedKey.length !== 2) {
 				throw new InsightError("ValidationError: Failure finding id.");
 			}
 			const id = parsedKey[0];
