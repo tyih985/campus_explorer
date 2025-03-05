@@ -1,6 +1,7 @@
 import { InsightError } from "./IInsightFacade";
+import { Data } from "./QueryEngine";
 
-export class Room {
+export class Room implements Data {
 	private readonly fullname: string;
 	private readonly shortname: string;
 	private readonly number: string;
