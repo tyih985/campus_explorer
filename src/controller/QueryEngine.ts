@@ -268,7 +268,7 @@ export class QueryEngine {
 				maxValue = value;
 			}
 		}
-		return Number(maxValue);
+		return Number(maxValue.toFixed(2));
 	}
 
 	private getMIN(group: Data[], field: any): number {
@@ -279,7 +279,7 @@ export class QueryEngine {
 				minValue = value;
 			}
 		}
-		return Number(minValue);
+		return Number(minValue.toFixed(2));
 	}
 
 	private getAVG(group: Data[], field: any): number {
