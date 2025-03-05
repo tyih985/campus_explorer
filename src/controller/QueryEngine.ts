@@ -82,24 +82,20 @@ export class QueryEngine {
 		result.sort((first, second) => {
 			const valA = first[order];
 			const valB = second[order];
-			if (valA < valB) {
-				return -1;
-			} else if (valA > valB) {
-				return 1;
-			} else {
-				return 0;
-			}
+			if (valA < valB) return -1;
+			if (valA > valB) return 1;
+			return 0;
 		});
 	}
 
 	private handleORDERmulti(order: any, result: InsightResult[]): void {
-		const direction = order.dir === "UP" ? 1 : -1;
+		const dir = order.dir === "UP" ? 1 : -1;
 		result.sort((first, second) => {
 			for (const key of order.keys) {
 				const valA = first[key];
 				const valB = second[key];
-				if (valA < valB) return -1 * direction;
-				if (valA > valB) return 1 * direction;
+				if (valA < valB) return -1 * dir;
+				if (valA > valB) return 1 * dir;
 			}
 			return 0;
 		});
@@ -246,24 +242,24 @@ export class QueryEngine {
 		switch (key) {
 			case "MAX":
 				this.filterEngine.validateNumericKey(target, id, kind);
-				return Math.max(...group.map((section) => Number(section.get(field))));
+				return Number(Decimal.max(...group.map((item) => new Decimal(item.get(field)))).toFixed(2));
 			case "MIN":
 				this.filterEngine.validateNumericKey(target, id, kind);
-				return Math.min(...group.map((section) => Number(section.get(field))));
+				return Number(Decimal.min(...group.map((item) => new Decimal(item.get(field)))).toFixed(2));
 			case "AVG": {
 				this.filterEngine.validateNumericKey(target, id, kind);
-				const sum = group.reduce((acc, section) => acc.add(new Decimal(section.get(field))), new Decimal(0));
+				const sum = group.reduce((acc, data) => acc.add(new Decimal(data.get(field))), new Decimal(0));
 				const average = sum.toNumber() / group.length;
 				return Number(average.toFixed(2));
 			}
 			case "COUNT": {
 				const uniqueVals = new Set();
-				group.forEach((section) => uniqueVals.add(section.get(field)));
+				group.forEach((data) => uniqueVals.add(data.get(field)));
 				return uniqueVals.size;
 			}
 			case "SUM": {
 				this.filterEngine.validateNumericKey(target, id, kind);
-				const sum = group.reduce((acc, section) => acc.add(new Decimal(section.get(field))), new Decimal(0));
+				const sum = group.reduce((acc, data) => acc.add(new Decimal(data.get(field))), new Decimal(0));
 				return Number(sum.toFixed(2));
 			}
 			default:
