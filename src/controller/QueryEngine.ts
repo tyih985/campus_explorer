@@ -1,10 +1,13 @@
-import { InsightError, InsightResult } from "./IInsightFacade";
+import { InsightDatasetKind, InsightError, InsightResult } from "./IInsightFacade";
 import { DatasetProcessor } from "./DatasetProcessor";
 import { FilterEngine } from "./FilterEngine";
 import { ValidationEngine } from "./ValidationEngine";
 import { Dataset } from "./Dataset";
-import {Section} from "./Section";
 import Decimal from "decimal.js";
+
+export interface Data {
+	get(field: string): string | number;
+}
 
 export class QueryEngine {
 	private filterEngine: FilterEngine;
@@ -22,7 +25,7 @@ export class QueryEngine {
 		const filteredDataset = this.filterEngine.filter(query.WHERE, id, dataset);
 		if (query.TRANSFORMATIONS) {
 			const groups = this.handleGROUP(filteredDataset, query.TRANSFORMATIONS.GROUP, id);
-			return this.handleOPTIONSAPPLY(query.OPTIONS, groups, query.TRANSFORMATIONS, id);
+			return this.handleOPTIONSTRANSFORM(query.OPTIONS, query.TRANSFORMATIONS, groups, id, dataset.kind);
 		}
 		return this.handleOPTIONS(query.OPTIONS, id, filteredDataset);
 	}
@@ -47,19 +50,31 @@ export class QueryEngine {
 		throw new InsightError("ValidationError: Failure finding id.");
 	}
 
-
-	private validateColumnKey(key: string, id: string): void {
-		const validFields = ["dept", "id", "instructor", "title", "uuid", "avg", "pass", "fail", "audit", "year"];
-		const match = key.match(/^([^_]+)_([^_]+)$/);
-		if (!match) {
-			throw new InsightError(`ValidationError: Key is not properly formatted.`);
-		}
-		const [, reqid, field] = match;
-		if (reqid !== id) {
-			throw new InsightError(`ValidationError: Cannot query more than one dataset.'`);
-		}
-		if (!validFields.includes(field)) {
-			throw new InsightError("ValidationError: Invalid string key.");
+	private validateKey(key: string, id: string, kind: InsightDatasetKind, allowedApplyKeys: string[]): void {
+		if (key.includes("_")) {
+			let validFields: string[];
+			if (kind === "rooms") {
+				const roomStringFields = ["fullname", "shortname", "number", "name", "address", "type", "furniture", "href"];
+				const roomNumericFields = ["lat", "lon", "seats"];
+				validFields = [...roomStringFields, ...roomNumericFields];
+			} else {
+				validFields = ["dept", "id", "instructor", "title", "uuid", "avg", "pass", "fail", "audit", "year"];
+			}
+			const match = key.match(/^([^_]+)_([^_]+)$/);
+			if (!match) {
+				throw new InsightError("ValidationError: Key is not properly formatted.");
+			}
+			const [, reqid, field] = match;
+			if (reqid !== id) {
+				throw new InsightError("ValidationError: Cannot query more than one dataset.");
+			}
+			if (!validFields.includes(field)) {
+				throw new InsightError("ValidationError: Invalid dataset field key.");
+			}
+		} else {
+			if (!allowedApplyKeys.includes(key)) {
+				throw new InsightError("ValidationError: Invalid apply token key.");
+			}
 		}
 	}
 
@@ -90,23 +105,8 @@ export class QueryEngine {
 		});
 	}
 
-	private handleCOLUMNS(columnKeys: string[], filteredDataset: Dataset, id: string): InsightResult[] {
-		if (!columnKeys || !Array.isArray(columnKeys) || columnKeys.length === 0) {
-			throw new InsightError("ValidationError: COLUMNS must be a non-empty array.");
-		}
-		return filteredDataset.sections.map((section) => {
-			const row: InsightResult = {};
-			columnKeys.forEach((key) => {
-				this.validateColumnKey(key, id);
-				const field = key.split("_")[1];
-				row[key] = section.get(field);
-			});
-			return row;
-		});
-	}
-
-	private handleOPTIONS(options: any, id: string, filteredDataset: Dataset): InsightResult[] {
-		const result = this.handleCOLUMNS(options.COLUMNS, filteredDataset, id);
+	private handleOPTIONS(options: any, id: string, dataset: Dataset): InsightResult[] {
+		const result = this.handleCOLUMNS(options.COLUMNS, dataset, id);
 		if (options.ORDER) {
 			if (typeof options.ORDER === "string") {
 				this.handleORDERsingle(options.ORDER, result);
@@ -119,41 +119,72 @@ export class QueryEngine {
 		return result;
 	}
 
-	private handleGROUP(dataset: Dataset, groupKeys: string[], id: string): Record<string, Section[]> {
-		const groups: Record<string, Section[]> = {};
-		for (const section of dataset.sections) {
+	private handleCOLUMNS(columnKeys: string[], dataset: Dataset, id: string): InsightResult[] {
+		if (!columnKeys || !Array.isArray(columnKeys) || columnKeys.length === 0) {
+			throw new InsightError("ValidationError: COLUMNS must be a non-empty array.");
+		}
+		let data: Data[];
+		if (dataset.kind === "rooms") {
+			data = dataset.rooms;
+		} else {
+			data = dataset.sections;
+		}
+		return data.map((section) => {
+			const row: InsightResult = {};
+			columnKeys.forEach((key) => {
+				this.validateKey(key, id, dataset.kind, []);
+				const field = key.split("_")[1];
+				row[key] = section.get(field);
+			});
+			return row;
+		});
+	}
+
+	private handleGROUP(dataset: Dataset, groupKeys: string[], id: string): Record<string, Data[]> {
+		const groups: Record<string, Data[]> = {};
+		let data: Data[];
+		if (dataset.kind === "rooms") {
+			data = dataset.rooms;
+		} else {
+			data = dataset.sections;
+		}
+		for (const item of data) {
 			const composite = groupKeys
 				.map((key) => {
-					this.validateColumnKey(key, id);
+					this.validateKey(key, id, dataset.kind, []);
 					const field = key.split("_")[1];
-					return section.get(field);
+					return item.get(field);
 				})
 				.join("_");
 
 			if (composite in groups) {
-				groups[composite].push(section);
+				groups[composite].push(item);
 			} else {
-				groups[composite] = [section];
+				groups[composite] = [item];
 			}
 		}
 		return groups;
 	}
 
-	private handleOPTIONSAPPLY(
+	private handleOPTIONSTRANSFORM(
 		options: any,
-		groups: Record<string, Section[]>,
 		transformations: any,
-		id: string
+		groups: Record<string, Data[]>,
+		id: string,
+		kind: InsightDatasetKind
 	): InsightResult[] {
 		const result: InsightResult[] = [];
 		const groupKeys: string[] = transformations.GROUP;
 		const applyObjs: any[] = transformations.APPLY;
+		const applyKeys = applyObjs.map((applyObj) => Object.keys(applyObj)[0]);
+
+		for (const columnKey of options.COLUMNS) {
+			this.validateKey(columnKey, id, kind, applyKeys);
+		}
 
 		for (const composite in groups) {
 			const group = groups[composite];
-			const row = this.getRow(groupKeys, group, id);
-			const aggregations = this.getAggregations(applyObjs, group, id);
-			Object.assign(row, aggregations);
+			const row = this.makeRow(group, groupKeys, applyObjs, options.COLUMNS, id, kind);
 			result.push(row);
 		}
 
@@ -169,17 +200,29 @@ export class QueryEngine {
 		return result;
 	}
 
-	private getRow(groupKeys: string[], group: Section[], id: string): InsightResult {
+	private makeRow(
+		group: Data[],
+		groupKeys: string[],
+		applyObjs: any[],
+		columns: string[],
+		id: string,
+		kind: InsightDatasetKind
+	): InsightResult {
 		const row: InsightResult = {};
 		for (const groupKey of groupKeys) {
-			this.validateColumnKey(groupKey, id);
 			const field = groupKey.split("_")[1];
 			row[groupKey] = group[0].get(field);
 		}
-		return row;
+		const aggregations: InsightResult = this.calculateAggregations(applyObjs, group, id, kind);
+		Object.assign(row, aggregations);
+		const finalRow: InsightResult = {};
+		for (const columnKey of columns) {
+			finalRow[columnKey] = row[columnKey];
+		}
+		return finalRow;
 	}
 
-	private getAggregations(applyObjs: any[], group: Section[], id: string): Record<string, any> {
+	private calculateAggregations(applyObjs: any[], group: Data[], id: string, kind: string): Record<string, any> {
 		const aggregations: Record<string, any> = {};
 		for (const obj of applyObjs) {
 			const applyKey = Object.keys(obj)[0];
@@ -187,21 +230,28 @@ export class QueryEngine {
 			const key = Object.keys(tokenObj)[0];
 			const target = tokenObj[key];
 			const field = target.split("_")[1];
-			aggregations[applyKey] = this.getAggregation(key, target, group, field, id);
+			aggregations[applyKey] = this.calculateAggregation(key, target, group, field, id, kind);
 		}
 		return aggregations;
 	}
 
-	private getAggregation(key: string, target: string, group: Section[], field: any, id: string): number {
+	private calculateAggregation(
+		key: string,
+		target: string,
+		group: Data[],
+		field: any,
+		id: string,
+		kind: string
+	): number {
 		switch (key) {
 			case "MAX":
-				this.filterEngine.validateNumericKey(target, id);
+				this.filterEngine.validateNumericKey(target, id, kind);
 				return Math.max(...group.map((section) => Number(section.get(field))));
 			case "MIN":
-				this.filterEngine.validateNumericKey(target, id);
+				this.filterEngine.validateNumericKey(target, id, kind);
 				return Math.min(...group.map((section) => Number(section.get(field))));
 			case "AVG": {
-				this.filterEngine.validateNumericKey(target, id);
+				this.filterEngine.validateNumericKey(target, id, kind);
 				const sum = group.reduce((acc, section) => acc.add(new Decimal(section.get(field))), new Decimal(0));
 				const average = sum.toNumber() / group.length;
 				return Number(average.toFixed(2));
@@ -212,7 +262,7 @@ export class QueryEngine {
 				return uniqueVals.size;
 			}
 			case "SUM": {
-				this.filterEngine.validateNumericKey(target, id);
+				this.filterEngine.validateNumericKey(target, id, kind);
 				const sum = group.reduce((acc, section) => acc.add(new Decimal(section.get(field))), new Decimal(0));
 				return Number(sum.toFixed(2));
 			}

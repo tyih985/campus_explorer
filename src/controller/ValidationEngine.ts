@@ -103,7 +103,6 @@ export class ValidationEngine {
 		}
 	}
 
-
 	private validateCOLUMNS(columns: any, transformations: any): void {
 		const groupKeys = new Set(transformations.GROUP);
 		const applyKeys = new Set(transformations.APPLY.map((applyObj: any) => Object.keys(applyObj)[0]));
