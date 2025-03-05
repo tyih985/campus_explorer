@@ -1,6 +1,7 @@
 import { InsightError } from "./IInsightFacade";
+import { Data } from "./QueryEngine";
 
-export class Section {
+export class Section implements Data {
 	private readonly id: string;
 	private readonly course: string;
 	private readonly title: string;
