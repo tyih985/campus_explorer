@@ -1,0 +1,23 @@
+{
+  "title": "Query where dataset idstring is wrong in GROUP",
+  "input": {
+    "WHERE": {
+      "IS": {
+        "sections_dept": "ca*"
+      }
+    },
+    "OPTIONS": {
+      "COLUMNS": [
+        "sections_dept"
+      ]
+    },
+    "TRANSFORMATIONS": {
+      "GROUP": [
+        "sections_dept", "rooms_uuid"
+      ],
+      "APPLY": []
+    }
+  },
+  "errorExpected": true,
+  "expected": "InsightError"
+}
