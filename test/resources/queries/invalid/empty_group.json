@@ -1,0 +1,34 @@
+{
+  "title": "Query where GROUP is empty",
+  "input": {
+    "WHERE": {
+      "IS": {
+        "sections_dept": "ca*"
+      }
+    },
+    "OPTIONS": {
+      "COLUMNS": [
+        "sections_dept",
+        "maxAvg",
+        "minPass"
+      ]
+    },
+    "TRANSFORMATIONS": {
+      "GROUP": [],
+      "APPLY": [
+        {
+          "maxAvg": {
+            "MAX": "sections_avg"
+          }
+        },
+        {
+          "minPass": {
+            "MIN": "sections_pass"
+          }
+        }
+      ]
+    }
+  },
+  "errorExpected": true,
+  "expected": "InsightError"
+}
