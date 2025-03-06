@@ -410,6 +410,9 @@ describe("InsightFacade", function () {
 			"[valid/simple_transformations.json] SELECT address, overallCapacity GROUP BY rooms_address APPLY overallCapacity = SUM(seats)",
 			checkQuery
 		);
+		it("[valid/max_and_min.json] SELECT dept WHERE dept = 'ca*' GROUP BY dept, year APPLY maxAvg = Max(avg), minPass = Min(pass)", checkQuery);
+		it("[valid/empty_apply.json] SELECT dept WHERE dept = 'ca*' GROUP BY dept", checkQuery);
+		it("[valid/order_by_applykey.json] SELECT dept, year, maxAvg WHERE dept = 'ca*' ORDER BY maxAvg GROUP BY dept, year APPLY maxAvg = Max(avg)", checkQuery);
 
 		it("[invalid/invalid.json] Query missing WHERE", checkQuery);
 		it("[invalid/invalid_query_key.json] Query where keys are invalid", checkQuery);
@@ -435,5 +438,7 @@ describe("InsightFacade", function () {
 		it("[invalid/invalid_sum_apply.json] Query with wrong query key type in SUM", checkQuery);
 		it("[invalid/same_applykey.json] Query with duplicate apply key", checkQuery);
 		it("[invalid/invalid_apply_field.json] Query where invalid field is in APPLY", checkQuery);
+		it("[invalid/empty_group.json] Query where GROUP is empty", checkQuery);
+		it("[invalid/wrong_idstring_in_group.json] Query where dataset idstring is wrong in GROUP", checkQuery);
 	});
 });
