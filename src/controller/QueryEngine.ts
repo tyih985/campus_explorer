@@ -50,7 +50,7 @@ export class QueryEngine {
 		throw new InsightError("ValidationError: Failure finding id.");
 	}
 
-	private validateKey(key: string, id: string, kind: InsightDatasetKind, allowedApplyKeys: string[]): void {
+	private validateKey(key: string, id: string, kind: string, allowedApplyKeys: string[]): void {
 		if (key.includes("_")) {
 			let validFields: string[];
 			if (kind === "rooms") {
@@ -82,24 +82,20 @@ export class QueryEngine {
 		result.sort((first, second) => {
 			const valA = first[order];
 			const valB = second[order];
-			if (valA < valB) {
-				return -1;
-			} else if (valA > valB) {
-				return 1;
-			} else {
-				return 0;
-			}
+			if (valA < valB) return -1;
+			if (valA > valB) return 1;
+			return 0;
 		});
 	}
 
 	private handleORDERmulti(order: any, result: InsightResult[]): void {
-		const direction = order.dir === "UP" ? 1 : -1;
+		const dir = order.dir === "UP" ? 1 : -1;
 		result.sort((first, second) => {
 			for (const key of order.keys) {
 				const valA = first[key];
 				const valB = second[key];
-				if (valA < valB) return -1 * direction;
-				if (valA > valB) return 1 * direction;
+				if (valA < valB) return -1 * dir;
+				if (valA > valB) return 1 * dir;
 			}
 			return 0;
 		});
@@ -246,28 +242,60 @@ export class QueryEngine {
 		switch (key) {
 			case "MAX":
 				this.filterEngine.validateNumericKey(target, id, kind);
-				return Math.max(...group.map((section) => Number(section.get(field))));
+				return this.getMAX(group, field);
 			case "MIN":
 				this.filterEngine.validateNumericKey(target, id, kind);
-				return Math.min(...group.map((section) => Number(section.get(field))));
-			case "AVG": {
+				return this.getMIN(group, field);
+			case "AVG":
 				this.filterEngine.validateNumericKey(target, id, kind);
-				const sum = group.reduce((acc, section) => acc.add(new Decimal(section.get(field))), new Decimal(0));
-				const average = sum.toNumber() / group.length;
-				return Number(average.toFixed(2));
-			}
-			case "COUNT": {
-				const uniqueVals = new Set();
-				group.forEach((section) => uniqueVals.add(section.get(field)));
-				return uniqueVals.size;
-			}
-			case "SUM": {
+				return this.getAVG(group, field);
+			case "COUNT":
+				this.validateKey(target, id, kind, []);
+				return this.getCOUNT(group, field);
+			case "SUM":
 				this.filterEngine.validateNumericKey(target, id, kind);
-				const sum = group.reduce((acc, section) => acc.add(new Decimal(section.get(field))), new Decimal(0));
-				return Number(sum.toFixed(2));
-			}
+				return this.getSUM(group, field);
 			default:
 				throw new InsightError("ValidationError: Invalid APPLY token.");
 		}
+	}
+
+	private getMAX(group: Data[], field: any): number {
+		let maxValue = new Decimal(-Infinity);
+		for (const item of group) {
+			const value = new Decimal(item.get(field));
+			if (value.gt(maxValue)) {
+				maxValue = value;
+			}
+		}
+		return Number(maxValue.toFixed(2));
+	}
+
+	private getMIN(group: Data[], field: any): number {
+		let minValue = new Decimal(Infinity);
+		for (const item of group) {
+			const value = new Decimal(item.get(field));
+			if (value.lt(minValue)) {
+				minValue = value;
+			}
+		}
+		return Number(minValue.toFixed(2));
+	}
+
+	private getAVG(group: Data[], field: any): number {
+		const sum = group.reduce((acc, data) => acc.add(new Decimal(data.get(field))), new Decimal(0));
+		const average = sum.toNumber() / group.length;
+		return Number(average.toFixed(2));
+	}
+
+	private getCOUNT(group: Data[], field: any): number {
+		const uniqueVals = new Set();
+		group.forEach((data) => uniqueVals.add(data.get(field)));
+		return uniqueVals.size;
+	}
+
+	private getSUM(group: Data[], field: any): number {
+		const sum = group.reduce((acc, data) => acc.add(new Decimal(data.get(field))), new Decimal(0));
+		return Number(sum.toFixed(2));
 	}
 }
