@@ -261,14 +261,14 @@ export class QueryEngine {
 	}
 
 	private getMAX(group: Data[], field: any): number {
-		let maxValue = new Decimal(-Infinity);
+		let maxValue = group[0].get(field) as number;
 		for (const item of group) {
-			const value = new Decimal(item.get(field));
-			if (value.gt(maxValue)) {
+			const value = item.get(field) as number;
+			if (value > maxValue) {
 				maxValue = value;
 			}
 		}
-		return Number(maxValue.toFixed(2));
+		return maxValue;
 	}
 
 	private getMIN(group: Data[], field: any): number {
