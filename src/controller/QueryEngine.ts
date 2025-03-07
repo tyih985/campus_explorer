@@ -261,7 +261,7 @@ export class QueryEngine {
 	}
 
 	private getMAX(group: Data[], field: any): number {
-		let maxValue = group[0].get(field) as number;
+		let maxValue = -Infinity;
 		for (const item of group) {
 			const value = item.get(field) as number;
 			if (value > maxValue) {
@@ -272,14 +272,14 @@ export class QueryEngine {
 	}
 
 	private getMIN(group: Data[], field: any): number {
-		let minValue = new Decimal(Infinity);
+		let minValue = Infinity;
 		for (const item of group) {
-			const value = new Decimal(item.get(field));
-			if (value.lt(minValue)) {
+			const value = item.get(field) as number;
+			if (value < minValue) {
 				minValue = value;
 			}
 		}
-		return Number(minValue.toFixed(2));
+		return minValue;
 	}
 
 	private getAVG(group: Data[], field: any): number {
