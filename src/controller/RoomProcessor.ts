@@ -112,8 +112,7 @@ export class RoomProcessor {
 				const cellClasses = cellClass.value.split(" ");
 				if (cellClasses) {
 					if (cellClasses.includes(code)) {
-						const textNode: any = Array.from(cell.childNodes).find((node: any) => node.nodeName === "#text");
-						if (textNode) buildingData.shortname = textNode.value.trim().replace(/\s+/g, " ");
+						this.getTextNodeInfo(cell, buildingData, "shortname");
 					} else if (cellClasses.includes(title)) {
 						const titleNode: any = Array.from(cell.childNodes ?? []).find((node: any) => node.nodeName === "a");
 						if (titleNode) {
@@ -123,8 +122,7 @@ export class RoomProcessor {
 							rooms = await this.handleBuildingFile(titleNode, data);
 						}
 					} else if (cellClasses.includes(address)) {
-						const childNode: any = Array.from(cell.childNodes).find((node: any) => node.nodeName === "#text");
-						if (childNode) buildingData.address = childNode.value.trim().replace(/\s+/g, " ");
+						this.getTextNodeInfo(cell, buildingData, "address");
 					}
 				}
 			}
@@ -223,18 +221,22 @@ export class RoomProcessor {
 						if (linkChildren) result.number = linkChildren.value;
 					}
 				} else if (classes.includes(seats)) {
-					const childNode: any = Array.from(cell.childNodes).find((node: any) => node.nodeName === "#text");
-					if (childNode) result.seats = childNode.value.trim().replace(/\s+/g, " ");
+					this.getTextNodeInfo(cell, result, "seats");
 				} else if (classes.includes(furniture)) {
-					const childNode: any = Array.from(cell.childNodes).find((node: any) => node.nodeName === "#text");
-					if (childNode) result.furniture = childNode.value.trim().replace(/\s+/g, " ");
+					this.getTextNodeInfo(cell, result, "furniture");
 				} else if (classes.includes(type)) {
-					const childNode: any = Array.from(cell.childNodes).find((node: any) => node.nodeName === "#text");
-					if (childNode) result.type = childNode.value.trim().replace(/\s+/g, " ");
+					this.getTextNodeInfo(cell, result, "type");
 				}
 			}
 		});
 		await Promise.all(promises);
 		return result;
+	}
+
+	private getTextNodeInfo(cell: any, result: Record<string, any>, key: string): void {
+		const childNode: any = Array.from(cell.childNodes).find((node: any) => node.nodeName === "#text");
+		if (childNode) {
+			result[key] = childNode.value.trim().replace(/\s+/g, " ");
+		}
 	}
 }

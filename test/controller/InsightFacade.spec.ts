@@ -330,7 +330,7 @@ describe("InsightFacade", function () {
 			// Will *fail* if there is a problem reading ANY dataset.
 			const loadDatasetPromises: Promise<string[]>[] = [
 				facade.addDataset("sections", sections, InsightDatasetKind.Sections),
-				facade.addDataset("rooms", rooms, InsightDatasetKind.Rooms)
+				facade.addDataset("rooms", rooms, InsightDatasetKind.Rooms),
 			];
 
 			try {
@@ -410,9 +410,15 @@ describe("InsightFacade", function () {
 			"[valid/simple_transformations.json] SELECT address, overallCapacity GROUP BY rooms_address APPLY overallCapacity = SUM(seats)",
 			checkQuery
 		);
-		it("[valid/max_and_min.json] SELECT dept WHERE dept = 'ca*' GROUP BY dept, year APPLY maxAvg = Max(avg), minPass = Min(pass)", checkQuery);
+		it(
+			"[valid/max_and_min.json] SELECT dept WHERE dept = 'ca*' GROUP BY dept, year APPLY maxAvg = Max(avg), minPass = Min(pass)",
+			checkQuery
+		);
 		it("[valid/empty_apply.json] SELECT dept WHERE dept = 'ca*' GROUP BY dept", checkQuery);
-		it("[valid/order_by_applykey.json] SELECT dept, year, maxAvg WHERE dept = 'ca*' ORDER BY maxAvg GROUP BY dept, year APPLY maxAvg = Max(avg)", checkQuery);
+		it(
+			"[valid/order_by_applykey.json] SELECT dept, year, maxAvg WHERE dept = 'ca*' ORDER BY maxAvg GROUP BY dept, year APPLY maxAvg = Max(avg)",
+			checkQuery
+		);
 
 		it("[invalid/invalid.json] Query missing WHERE", checkQuery);
 		it("[invalid/invalid_query_key.json] Query where keys are invalid", checkQuery);
