@@ -1,0 +1,63 @@
+{
+  "title": "SELECT dept WHERE dept = 'ca*' GROUP BY dept, year APPLY maxAvg = Max(avg), minPass = Min(pass)",
+  "input": {
+    "WHERE": {
+      "IS": {
+        "sections_dept": "ca*"
+      }
+    },
+    "OPTIONS": {
+      "COLUMNS": [
+        "sections_dept",
+        "maxAvg",
+        "minPass"
+      ]
+    },
+    "TRANSFORMATIONS": {
+      "GROUP": [
+        "sections_dept",
+        "sections_year"
+      ],
+      "APPLY": [
+        {
+          "maxAvg": {
+            "MAX": "sections_avg"
+          }
+        },
+        {
+          "minPass": {
+            "MIN": "sections_pass"
+          }
+        }
+      ]
+    }
+  },
+  "errorExpected": false,
+  "expected": [
+    {
+      "sections_dept": "caps",
+      "maxAvg": 89.8,
+      "minPass": 7
+    },
+    {
+      "sections_dept": "caps",
+      "maxAvg": 89.8,
+      "minPass": 7
+    },
+    {
+      "sections_dept": "caps",
+      "maxAvg": 89.75,
+      "minPass": 8
+    },
+    {
+      "sections_dept": "caps",
+      "maxAvg": 89.38,
+      "minPass": 11
+    },
+    {
+      "sections_dept": "caps",
+      "maxAvg": 85.33,
+      "minPass": 30
+    }
+  ]
+}

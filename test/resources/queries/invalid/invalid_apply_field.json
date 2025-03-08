@@ -1,0 +1,17 @@
+{
+  "title": "Query where invalid field is in APPLY",
+  "input": {
+    "WHERE": {},
+    "OPTIONS": {
+      "COLUMNS": ["rooms_shortname", "maxInvalid"]
+    },
+    "TRANSFORMATIONS": {
+      "GROUP": ["rooms_shortname"],
+      "APPLY": [
+        { "maxInvalid": { "MAX": "rooms_invalidField" } }
+      ]
+    }
+  },
+  "errorExpected": true,
+  "expected": "InsightError"
+}
