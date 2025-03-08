@@ -150,7 +150,10 @@ export class QueryEngine {
 					this.validateKey(key, id, dataset.kind, []);
 					const field = key.split("_")[1];
 					const value = item.get(field);
-					return value === undefined ? "" : value;
+					if (value === undefined) {
+						throw new InsightError(`ValidationError: Missing value.`);
+					}
+					return value;
 				})
 				.join("_");
 
@@ -265,10 +268,11 @@ export class QueryEngine {
 		let maxValue: number | null = null;
 		for (const item of group) {
 			const value = Number(item.get(field));
-			if (!isNaN(value)) {
-				if (maxValue === null || value > maxValue) {
-					maxValue = value;
-				}
+			if (isNaN(value)) {
+				throw new InsightError("ValidationError: Invalid query.");
+			}
+			if (maxValue === null || value > maxValue) {
+				maxValue = value;
 			}
 		}
 		if (maxValue === null) {
@@ -281,10 +285,11 @@ export class QueryEngine {
 		let minValue: number | null = null;
 		for (const item of group) {
 			const value = Number(item.get(field));
-			if (!isNaN(value)) {
-				if (minValue === null || value < minValue) {
-					minValue = value;
-				}
+			if (isNaN(value)) {
+				throw new InsightError("ValidationError: Invalid query.");
+			}
+			if (minValue === null || value < minValue) {
+				minValue = value;
 			}
 		}
 		if (minValue === null) {
