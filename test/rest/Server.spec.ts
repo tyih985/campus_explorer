@@ -2,14 +2,30 @@ import { expect } from "chai";
 import request from "supertest";
 import { StatusCodes } from "http-status-codes";
 import { Log } from "@ubccpsc310/project-support";
+import Server from "../../src/rest/Server";
+import * as fs from "fs-extra";
+import {clearDisk} from "../TestUtil";
 
 describe("Facade C3", function () {
-	before(function () {
-		// TODO: start server here once and handle errors properly
+	let server: Server;
+	const port = 4321;
+
+	before(async function () {
+		server = new Server(port);
+		try {
+			await clearDisk();
+			await server.start();
+		} catch (err) {
+			expect.fail(`Unexpected error starting server: ${err}`);
+		}
 	});
 
-	after(function () {
-		// TODO: stop server here once!
+	after(async function () {
+		try {
+			await server.stop();
+		} catch (err) {
+			expect.fail(`Unexpected error stopping server: ${err}`);
+		}
 	});
 
 	beforeEach(function () {
@@ -22,9 +38,9 @@ describe("Facade C3", function () {
 
 	// Sample on how to format PUT requests
 	it("PUT test for courses dataset", async function () {
-		const SERVER_URL = "TBD";
-		const ENDPOINT_URL = "TBD";
-		const ZIP_FILE_DATA = "TBD";
+		const SERVER_URL = "http://localhost:4321";
+		const ENDPOINT_URL = "/dataset/abc/sections";
+		const ZIP_FILE_DATA = await fs.readFile("test/resources/archives/pair.zip");
 
 		try {
 			const res = await request(SERVER_URL)
@@ -32,7 +48,9 @@ describe("Facade C3", function () {
 				.send(ZIP_FILE_DATA)
 				.set("Content-Type", "application/x-zip-compressed");
 			expect(res.status).to.be.equal(StatusCodes.OK);
-			// TODO add assertions that check res.body
+			expect(res.body).to.deep.equal({
+				result: ['abc']
+			});
 		} catch (err) {
 			Log.error(err);
 			expect.fail();
