@@ -3,6 +3,8 @@ import { StatusCodes } from "http-status-codes";
 import { Log } from "@ubccpsc310/project-support";
 import * as http from "http";
 import cors from "cors";
+import { Put } from "./Put";
+import { Delete } from "./Delete";
 
 export default class Server {
 	private readonly port: number;
@@ -89,6 +91,8 @@ export default class Server {
 		this.express.get("/echo/:msg", Server.echo);
 
 		// TODO: your other endpoints should go here
+		this.express.put("/dataset/:id/:kind", Put.addDataset);
+		this.express.delete("/dataset/:id", Delete.removeDataset);
 	}
 
 	// The next two methods handle the echo service.
