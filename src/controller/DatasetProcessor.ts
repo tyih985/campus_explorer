@@ -40,8 +40,11 @@ export class DatasetProcessor {
 
 	private async getData(files: string[]): Promise<void> {
 		try {
-			const cachedFiles = new Set(Object.values(this.ids));
-			const loadNeeded = files.filter((file) => !cachedFiles.has(path.basename(file, ".json")));
+			const cachedFiles = Object.values(this.ids);
+			const loadNeeded = files.filter((file) => !cachedFiles.includes(path.basename(file, ".json")));
+			const removedFiles = Object.fromEntries(
+				Object.entries(this.ids).filter(([key, value]) => !files.includes(value + ".json"))
+			);
 
 			const jsonDataPromises = loadNeeded.map(async (file) => {
 				const filePath = path.join(folderPath, file);
@@ -54,7 +57,14 @@ export class DatasetProcessor {
 				});
 				this.ids[data.id] = encodeToBase64Url(data.id);
 			});
-			await Promise.all(jsonDataPromises);
+
+			const removeDataPromises = Object.keys(removedFiles).map(async (key) => {
+				delete this.ids[key];
+				this.datasets = this.datasets.filter((dataset) => dataset.id !== key);
+			});
+
+			const allPromises = jsonDataPromises.concat(removeDataPromises);
+			await Promise.all(allPromises);
 			return;
 		} catch (err) {
 			throw new InsightError(`Unexpected error thrown: ${err}`);
