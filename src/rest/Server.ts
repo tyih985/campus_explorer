@@ -5,6 +5,8 @@ import * as http from "http";
 import cors from "cors";
 import { Put } from "./Put";
 import { Delete } from "./Delete";
+import { Post } from "./Post";
+import { Get } from "./Get";
 
 export default class Server {
 	private readonly port: number;
@@ -93,6 +95,8 @@ export default class Server {
 		// TODO: your other endpoints should go here
 		this.express.put("/dataset/:id/:kind", Put.addDataset);
 		this.express.delete("/dataset/:id", Delete.removeDataset);
+		this.express.post("/query", Post.performQuery);
+		this.express.get("/datasets", Get.listDatasets);
 	}
 
 	// The next two methods handle the echo service.
