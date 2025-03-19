@@ -27,20 +27,20 @@ describe("Facade C3", function () {
 		}
 	});
 
-	beforeEach(function () {
-		// might want to add some process logging here to keep track of what is going om
+	beforeEach(async function () {
+		// might want to add some process logging here to keep track of what is going on
+		await clearDisk();
 	});
 
 	afterEach(async function () {
 		// might want to add some process logging here to keep track of what is going on
-		await clearDisk();
 	});
 
 	// Sample on how to format PUT requests
 	it("PUT test for courses dataset", async function () {
 		const SERVER_URL = "http://localhost:4321";
 		const ENDPOINT_URL = "/dataset/abc/sections";
-		const ZIP_FILE_DATA = await fs.readFile("test/resources/archives/pair.zip");
+		const ZIP_FILE_DATA = await fs.readFile("test/resources/archives/simpleSections2.zip");
 
 		try {
 			const res = await request(SERVER_URL)
