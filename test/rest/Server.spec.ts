@@ -107,4 +107,78 @@ describe("Facade C3", function () {
 			expect.fail();
 		}
 	});
+
+	it("POST test for sections query", async function () {
+		const SERVER_URL = "http://localhost:4321";
+		const ADD_ENDPOINT_URL = "/dataset/sections/sections";
+		const QUERY_ENDPOINT_URL = "/query";
+		const ZIP_FILE_DATA = await fs.readFile("test/resources/archives/pair.zip");
+
+		const query = {
+			WHERE: {
+				IS: { sections_dept: "*nb" },
+			},
+			OPTIONS: { COLUMNS: ["sections_dept", "sections_id"] },
+		};
+
+		const expected = [
+			{ sections_dept: "aanb", sections_id: "504" },
+			{ sections_dept: "aanb", sections_id: "504" },
+			{ sections_dept: "aanb", sections_id: "551" },
+			{ sections_dept: "aanb", sections_id: "551" },
+		];
+
+		try {
+			await request(SERVER_URL)
+				.put(ADD_ENDPOINT_URL)
+				.send(ZIP_FILE_DATA)
+				.set("Content-Type", "application/x-zip-compressed");
+			const postRes = await request(SERVER_URL)
+				.post(QUERY_ENDPOINT_URL)
+				.send(query)
+				.set("Content-Type", "application/json");
+			expect(postRes.status).to.be.equal(StatusCodes.OK);
+			expect(postRes.body.result).to.deep.equal(expected);
+		} catch (err) {
+			Log.error(err);
+			expect.fail();
+		}
+	});
+
+	it("POST test for invalid query (missing WHERE)", async function () {
+		const SERVER_URL = "http://localhost:4321";
+		const QUERY_ENDPOINT_URL = "/query";
+
+		const query = {
+			OPTIONS: {},
+		};
+
+		const expected = "ValidationError: Query is missing required field 'WHERE'.";
+
+		try {
+			const postRes = await request(SERVER_URL)
+				.post(QUERY_ENDPOINT_URL)
+				.send(query)
+				.set("Content-Type", "application/json");
+			expect(postRes.status).to.be.equal(StatusCodes.BAD_REQUEST);
+			expect(postRes.body.error).to.be.equal(expected);
+		} catch (err) {
+			Log.error(err);
+			expect.fail();
+		}
+	});
+
+	it("GET test", async function () {
+		const SERVER_URL = "http://localhost:4321";
+		const LIST_ENDPOINT_URL = "/datasets";
+
+		try {
+			const res = await request(SERVER_URL).get(LIST_ENDPOINT_URL);
+			expect(res.status).to.be.equal(StatusCodes.OK);
+			expect(res.body.result).to.deep.equal([]);
+		} catch (err) {
+			Log.error(err);
+			expect.fail();
+		}
+	});
 });
