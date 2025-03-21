@@ -19,7 +19,7 @@ export class Delete {
 			} else {
 				status = StatusCodes.NOT_FOUND;
 			}
-			res.status(status).json({ error: err });
+			res.status(status).json({ error: (err as Error).message });
 		}
 	}
 }
