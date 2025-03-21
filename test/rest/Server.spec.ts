@@ -57,6 +57,58 @@ describe("Facade C3", function () {
 		}
 	});
 
+	it("PUT test for invalid kind", async function () {
+		const SERVER_URL = "http://localhost:4321";
+		const ENDPOINT_URL = "/dataset/abc/kind";
+		const ZIP_FILE_DATA = await fs.readFile("test/resources/archives/simpleSections2.zip");
+
+		try {
+			const res = await request(SERVER_URL)
+				.put(ENDPOINT_URL)
+				.send(ZIP_FILE_DATA)
+				.set("Content-Type", "application/x-zip-compressed");
+			expect(res.status).to.be.equal(StatusCodes.BAD_REQUEST);
+			expect(res.body).to.haveOwnProperty("error");
+		} catch (err) {
+			Log.error(err);
+			expect.fail();
+		}
+	});
+
+	it("PUT test for invalid idstring", async function () {
+		const SERVER_URL = "http://localhost:4321";
+		const ENDPOINT_URL = "/dataset/abc_123/sections";
+		const ZIP_FILE_DATA = await fs.readFile("test/resources/archives/simpleSections3.zip");
+
+		try {
+			const res = await request(SERVER_URL)
+				.put(ENDPOINT_URL)
+				.send(ZIP_FILE_DATA)
+				.set("Content-Type", "application/x-zip-compressed");
+			expect(res.status).to.be.equal(StatusCodes.BAD_REQUEST);
+		} catch (err) {
+			Log.error(err);
+			expect.fail();
+		}
+	});
+
+	it("PUT test for invalid zip given", async function () {
+		const SERVER_URL = "http://localhost:4321";
+		const ENDPOINT_URL = "/dataset/id/sections";
+		const ZIP_FILE_DATA = await fs.readFile("test/resources/archives/noCoursesFolder.zip");
+
+		try {
+			const res = await request(SERVER_URL)
+				.put(ENDPOINT_URL)
+				.send(ZIP_FILE_DATA)
+				.set("Content-Type", "application/x-zip-compressed");
+			expect(res.status).to.be.equal(StatusCodes.BAD_REQUEST);
+		} catch (err) {
+			Log.error(err);
+			expect.fail();
+		}
+	});
+
 	// The other endpoints work similarly. You should be able to find all instructions in the supertest documentation
 	it("DELETE test for non-existent dataset", async function () {
 		const SERVER_URL = "http://localhost:4321";

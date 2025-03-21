@@ -8,12 +8,8 @@ export class Get {
 	private static facade: IInsightFacade = new InsightFacade();
 
 	public static async listDatasets(req: Request, res: Response): Promise<void> {
-		try {
-			Log.info(`Server::listDatasets(..)`);
-			const response = await Get.facade.listDatasets();
-			res.status(StatusCodes.OK).json({ result: response });
-		} catch (err) {
-			res.status(StatusCodes.BAD_REQUEST).json({ error: err });
-		}
+		Log.info(`Server::listDatasets(..)`);
+		const response = await Get.facade.listDatasets();
+		res.status(StatusCodes.OK).json({ result: response });
 	}
 }
