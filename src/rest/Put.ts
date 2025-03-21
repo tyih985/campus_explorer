@@ -18,7 +18,7 @@ export class Put {
 			);
 			res.status(StatusCodes.OK).json({ result: response });
 		} catch (err) {
-			res.status(StatusCodes.BAD_REQUEST).json({ error: err });
+			res.status(StatusCodes.BAD_REQUEST).json({ error: (err as Error).message });
 		}
 	}
 
