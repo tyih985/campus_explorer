@@ -29,7 +29,7 @@ function RoomDetails({ room, index }: any) {
             }}
         >
             <div className="flex items-center gap-x-4">
-                <span className="font-semibold text-2xl">{`${room.rooms_shortname} ${room.rooms_number}`}</span>
+                <span className="font-semibold text-xl">{`${room.rooms_shortname} ${room.rooms_number}`}</span>
             </div>
 
             {expanded && (
