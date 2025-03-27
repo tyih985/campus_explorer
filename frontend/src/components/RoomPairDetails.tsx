@@ -1,16 +1,8 @@
 import { useEffect, useState } from "react";
 import { useSelectedRoomsContext } from "../contexts/SelectedRoomsContext.tsx";
 import Room from "../types/Room.tsx";
+import { getRoomPairs } from "../directions";
 
-function getRoomPairs(rooms: Room[]): Array<[Room, Room]> {
-	const pairs: Array<[Room, Room]> = [];
-	for (let i = 0; i < rooms.length; i++) {
-		for (let j = i + 1; j < rooms.length; j++) {
-			pairs.push([rooms[i], rooms[j]]);
-		}
-	}
-	return pairs;
-}
 
 interface PairEstimate {
 	room1: Room;
