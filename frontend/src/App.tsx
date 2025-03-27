@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import MapComponent from "./components/MapComponent.tsx";
-import RoomDetails from "./components/RoomDetails.tsx";
 import RoomPairDetails from "./components/RoomPairDetails.tsx";
 import Room from "./types/Room.tsx";
 import { SelectedRoomsContextType, SelectedRoomsContext } from "./contexts/SelectedRoomsContext.tsx";
+import RoomList from "./components/RoomList.tsx";
+import {FavouritesContext, FavouritesContextType} from "./contexts/FavouritesContext.tsx";
 
 export interface Geolocation {
     lat: number,
@@ -25,11 +26,17 @@ function getUniqueLocations(rooms: Room[]): Map<string, Geolocation> {
 function App() {
     const [rooms, setRooms] = useState([]);
 
-    const defaultValue: SelectedRoomsContextType = {
+    const defaultSelected: SelectedRoomsContextType = {
         selectedRooms: [],
         setSelectedRooms: () => {}
     }
-    const [selectedRooms, setSelectedRooms] = useState<Room[]>(defaultValue.selectedRooms);
+    const [selectedRooms, setSelectedRooms] = useState<Room[]>(defaultSelected.selectedRooms);
+
+    const defaultFavourites: FavouritesContextType = {
+        favourites: [],
+        setFavourites: () => {}
+    }
+    const [favourites, setFavourites] = useState<Room[]>(defaultFavourites.favourites);
 
     useEffect(() => {
         const query = {
@@ -63,14 +70,9 @@ function App() {
                 <div className="flex justify-center items-center w-full max-w-[90%] mt-6 space-x-6 h-2/3">
                     <SelectedRoomsContext.Provider value={{ selectedRooms, setSelectedRooms }}>
                         <MapComponent rooms={uniqueRooms}/>
-                        <div className="w-1/3 bg-white shadow-lg rounded-lg p-6 overflow-y-auto h-full text-lg">
-                            <h1 className="text-2xl font-semibold mb-4 text-gray-700"> Rooms List</h1>
-                            <ul className="space-y-2">
-                                {rooms.map((room: Room, index) => (
-                                    <RoomDetails room={room} index={index}/>
-                                ))}
-                            </ul>
-                        </div>
+                        <FavouritesContext.Provider value={{ favourites, setFavourites }}>
+                            <RoomList rooms={rooms}/>
+                        </FavouritesContext.Provider>
 						<RoomPairDetails/>
                     </SelectedRoomsContext.Provider>
                 </div>
