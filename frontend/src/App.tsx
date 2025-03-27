@@ -1,6 +1,7 @@
-import {useEffect, useMemo, useState} from "react";
+import { useEffect, useMemo, useState } from "react";
 import MapComponent from "./components/MapComponent.tsx";
 import RoomDetails from "./components/RoomDetails.tsx";
+import RoomPairDetails from "./components/RoomPairDetails.tsx";
 import Room from "./types/Room.tsx";
 import { SelectedRoomsContextType, SelectedRoomsContext } from "./contexts/SelectedRoomsContext.tsx";
 
@@ -59,14 +60,6 @@ function App() {
             <h1 className="text-4xl font-bold text-center mt-6">Campus Explorer</h1>
             <div className="flex flex-col items-center mt-6 space-y-4 h-screen">
 
-                <div className="w-full max-w-2xl px-4">
-                <input
-                    type="text"
-                    placeholder="Search for a room or building name here..."
-                    className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                </div>
-
                 <div className="flex justify-center items-center w-full max-w-[90%] mt-6 space-x-6 h-2/3">
                     <SelectedRoomsContext.Provider value={{ selectedRooms, setSelectedRooms }}>
                         <MapComponent rooms={uniqueRooms}/>
@@ -78,6 +71,7 @@ function App() {
                                 ))}
                             </ul>
                         </div>
+						<RoomPairDetails/>
                     </SelectedRoomsContext.Provider>
                 </div>
             </div>
