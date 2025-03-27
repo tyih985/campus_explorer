@@ -1,5 +1,5 @@
 import { useSelectedRoomsContext } from "../contexts/SelectedRoomsContext.tsx";
-import {useState} from "react";
+import { useState } from "react";
 
 function RoomDetails({ room, index }: any) {
     const [ expanded, setExpanded ] = useState(false);
