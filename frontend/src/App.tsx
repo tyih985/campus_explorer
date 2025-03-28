@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import MapComponent from "./components/MapComponent.tsx";
-import RoomDetails from "./components/RoomDetails.tsx";
 import RoomPairDetails from "./components/RoomPairDetails.tsx";
 import Room from "./types/Room.tsx";
 import { SelectedRoomsContextType, SelectedRoomsContext } from "./contexts/SelectedRoomsContext.tsx";
-import { getWalkingRoute, getRoomPairs } from "./directions";
+import RoomList from "./components/RoomList.tsx";
+import {FavouritesContext, FavouritesContextType} from "./contexts/FavouritesContext.tsx";
 
 export interface Geolocation {
     lat: number,
@@ -22,16 +22,21 @@ function getUniqueLocations(rooms: Room[]): Map<string, Geolocation> {
     return locations
 }
 
+
 function App() {
     const [rooms, setRooms] = useState([]);
-	const [routes, setRoutes] = useState<Array<{ id: string, geojson: any }>>([]);
 
-    const defaultValue: SelectedRoomsContextType = {
+    const defaultSelected: SelectedRoomsContextType = {
         selectedRooms: [],
         setSelectedRooms: () => {}
     }
+    const [selectedRooms, setSelectedRooms] = useState<Room[]>(defaultSelected.selectedRooms);
 
-	const [selectedRooms, setSelectedRooms] = useState<Room[]>(defaultValue.selectedRooms);
+    const defaultFavourites: FavouritesContextType = {
+        favourites: [],
+        setFavourites: () => {}
+    }
+    const [favourites, setFavourites] = useState<Room[]>(defaultFavourites.favourites);
 
     useEffect(() => {
         const query = {
@@ -57,44 +62,17 @@ function App() {
 
     const uniqueRooms = useMemo(() => getUniqueLocations(rooms), [rooms]);
 
-	useEffect(() => {
-		async function fetchRoutes() {
-			if (selectedRooms.length < 2) {
-				setRoutes([]);
-				return;
-			}
-			const pairs = getRoomPairs(selectedRooms);
-			const newRoutes: Array<{ id: string, geojson: any }> = [];
-			for (const [roomA, roomB] of pairs) {
-				const origin: [number, number] = [roomA.rooms_lon, roomA.rooms_lat];
-				const destination: [number, number] = [roomB.rooms_lon, roomB.rooms_lat];
-				const geojson = await getWalkingRoute(origin, destination);
-				const id = [roomA.rooms_shortname, roomB.rooms_shortname].sort().join("-");
-				if (geojson) {
-					newRoutes.push({ id, geojson });
-				}
-			}
-			setRoutes(newRoutes);
-		}
-		fetchRoutes();
-	}, [selectedRooms]);
-
     return (
         <>
-            <h1 className="text-4xl font-bold text-center mt-6">UBC Campus Explorer</h1>
+            <h1 className="text-4xl font-bold text-center mt-6">Campus Explorer</h1>
             <div className="flex flex-col items-center mt-6 space-y-4 h-screen">
 
                 <div className="flex justify-center items-center w-full max-w-[90%] mt-6 space-x-6 h-2/3">
                     <SelectedRoomsContext.Provider value={{ selectedRooms, setSelectedRooms }}>
-                        <MapComponent rooms={uniqueRooms} routes={routes}/>
-                        <div className="w-1/3 bg-white shadow-lg rounded-lg p-6 overflow-y-auto h-full text-lg">
-                            <h1 className="text-2xl font-semibold mb-4 text-gray-700"> Rooms List</h1>
-                            <ul className="space-y-2">
-                                {rooms.map((room: Room, index) => (
-                                    <RoomDetails room={room} index={index}/>
-                                ))}
-                            </ul>
-                        </div>
+                        <MapComponent rooms={uniqueRooms}/>
+                        <FavouritesContext.Provider value={{ favourites, setFavourites }}>
+                            <RoomList rooms={rooms}/>
+                        </FavouritesContext.Provider>
 						<RoomPairDetails/>
                     </SelectedRoomsContext.Provider>
                 </div>
