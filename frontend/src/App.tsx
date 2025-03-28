@@ -91,17 +91,22 @@ function App() {
 	}, [selectedRooms]);
 
     return (
-        <>
-            <h1 className="text-4xl font-bold text-center mt-6">Campus Explorer</h1>
-            <div className="flex flex-col items-center mt-6 space-y-4 h-screen">
-                <div className="flex justify-center items-center w-full max-w-[90%] mt-6 space-x-6 h-2/3">
-					<SelectedRoomsContext.Provider value={{ selectedRooms, setSelectedRooms }}>
-						<SelectedRouteContext.Provider value={{ selectedRoute, setSelectedRoute }}>
-							<MapComponent rooms={uniqueRooms} />
-							<FavouritesContext.Provider value={{ favourites, setFavourites }}>
-								<RoomList rooms={rooms} />
+		<>
+			<h1 className="text-4xl font-bold text-center mt-6">UBC Campus Explorer</h1>
+			<p className="text-white text-center mt-2 max-w-lg mx-auto leading-tight">
+				Welcome to UBC Campus Explorer! Discover the best walking routes between various rooms on campus.
+				Choose 2-5 rooms at a time, and then click on one of the rows from the Walking Distances table
+				to view the fastest route on the map.
+			</p>
+			<div className="flex flex-col items-center mt-6 space-y-4 h-screen">
+				<div className="flex justify-center items-center w-full max-w-[90%] mt-6 space-x-6 h-2/3">
+					<SelectedRoomsContext.Provider value={{selectedRooms, setSelectedRooms}}>
+						<SelectedRouteContext.Provider value={{selectedRoute, setSelectedRoute}}>
+							<MapComponent rooms={uniqueRooms}/>
+							<FavouritesContext.Provider value={{favourites, setFavourites}}>
+								<RoomList rooms={rooms}/>
 							</FavouritesContext.Provider>
-							<RoomPairDetails routes={routes} />
+							<RoomPairDetails routes={routes}/>
 						</SelectedRouteContext.Provider>
 					</SelectedRoomsContext.Provider>
 				</div>
