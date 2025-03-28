@@ -5,6 +5,7 @@ import Room from "./types/Room.tsx";
 import { SelectedRoomsContextType, SelectedRoomsContext } from "./contexts/SelectedRoomsContext.tsx";
 import RoomList from "./components/RoomList.tsx";
 import {FavouritesContext, FavouritesContextType} from "./contexts/FavouritesContext.tsx";
+import { SelectedRouteContext, SelectedRoute } from "./contexts/SelectedRouteContext";
 import { getWalkingRoute, getRoomPairs } from "./directions";
 
 export interface Geolocation {
@@ -40,6 +41,8 @@ function App() {
     }
     const [favourites, setFavourites] = useState<Room[]>(defaultFavourites.favourites);
 
+	const [selectedRoute, setSelectedRoute] = useState<SelectedRoute | null>(null);
+
     useEffect(() => {
         const query = {
             WHERE: {},
@@ -68,6 +71,7 @@ function App() {
 		async function fetchRoutes() {
 			if (selectedRooms.length < 2) {
 				setRoutes([]);
+				setSelectedRoute(null);
 				return;
 			}
 			const pairs = getRoomPairs(selectedRooms);
@@ -90,19 +94,20 @@ function App() {
         <>
             <h1 className="text-4xl font-bold text-center mt-6">Campus Explorer</h1>
             <div className="flex flex-col items-center mt-6 space-y-4 h-screen">
-
                 <div className="flex justify-center items-center w-full max-w-[90%] mt-6 space-x-6 h-2/3">
-                    <SelectedRoomsContext.Provider value={{ selectedRooms, setSelectedRooms }}>
-						<MapComponent rooms={uniqueRooms} routes={routes} />
-                        <FavouritesContext.Provider value={{ favourites, setFavourites }}>
-                            <RoomList rooms={rooms}/>
-                        </FavouritesContext.Provider>
-						<RoomPairDetails/>
-                    </SelectedRoomsContext.Provider>
-                </div>
-            </div>
-        </>
-    )
+					<SelectedRoomsContext.Provider value={{ selectedRooms, setSelectedRooms }}>
+						<SelectedRouteContext.Provider value={{ selectedRoute, setSelectedRoute }}>
+							<MapComponent rooms={uniqueRooms} />
+							<FavouritesContext.Provider value={{ favourites, setFavourites }}>
+								<RoomList rooms={rooms} />
+							</FavouritesContext.Provider>
+							<RoomPairDetails routes={routes} />
+						</SelectedRouteContext.Provider>
+					</SelectedRoomsContext.Provider>
+				</div>
+			</div>
+		</>
+	)
 }
 
 export default App
