@@ -1,25 +1,21 @@
 import { useEffect, useRef } from "react";
 import 'mapbox-gl/dist/mapbox-gl.css';
 import mapboxgl from "mapbox-gl";
+import { useSelectedRouteContext } from "../contexts/SelectedRouteContext";
 
 interface Geolocation {
 	lat: number;
 	lon: number;
 }
 
-interface Route {
-	id: string;
-	geojson: any;
-}
-
 interface MapComponentProps {
 	rooms: Map<string, Geolocation>;
-	routes: Route[];
 }
 
-function MapComponent ({ rooms, routes }: MapComponentProps) {
+function MapComponent ({ rooms }: MapComponentProps) {
     const mapRef = useRef<mapboxgl.Map | null>(null);
     const mapContainerRef = useRef<HTMLDivElement | null>(null);
+	const { selectedRoute } = useSelectedRouteContext();
     console.log(rooms);
 
     useEffect(() => {
@@ -53,69 +49,35 @@ function MapComponent ({ rooms, routes }: MapComponentProps) {
 
 	useEffect(() => {
 		if (!mapRef.current) return;
-		const currentMap = mapRef.current;
 
-		if (!currentMap.isStyleLoaded()) {
-			currentMap.once("styledata", () => {});
-			return;
-		}
-
-		const style = currentMap.getStyle();
-		if (style && style.layers) {
-			style.layers.forEach((layer) => {
-				if (layer.id.startsWith("route-")) {
-					if (currentMap.getLayer(layer.id)) {
-						currentMap.removeLayer(layer.id);
-					}
-					if (currentMap.getSource(layer.id)) {
-						currentMap.removeSource(layer.id);
-					}
-				}
-			});
-		}
-
-		const colors = [
-			"#800080", // purpleee
-			"#FF4500", // red-orange
-			"#1E90FF", // blue
-			"#32CD32", // green
-			"#FFD700", // yellow
-			"#FF1493", // pink
-			"#00CED1", // cyan
-			"#DC143C", // red
-			"#8A2BE2", // light purple
-			"#FF8C00", // orange
-		];
-
-		routes.forEach((route, idx) => {
-			if (!route.geojson) return;
-			const sourceId = `route-${route.id}`;
-			const color = colors[idx % colors.length];
-
-			if (!currentMap.getSource(sourceId)) {
-				currentMap.addSource(sourceId, {
-					type: "geojson",
-					data: route.geojson,
-				});
-
-				currentMap.addLayer({
-					id: sourceId,
-					type: "line",
-					source: sourceId,
-					layout: {
-						"line-join": "round",
-						"line-cap": "round",
-					},
-					paint: {
-						"line-color": color,
-						"line-width": 2,
-					},
-				});
-			} else {
-				(currentMap.getSource(sourceId) as mapboxgl.GeoJSONSource).setData(route.geojson);
+		const updateSelectedRouteLayer = () => {
+			if (mapRef.current.getLayer("selected-route")) {
+				mapRef.current.removeLayer("selected-route");
 			}
-		});
-	}, [routes]);
+			if (mapRef.current.getSource("selected-route")) {
+				mapRef.current.removeSource("selected-route");
+			}
+			if (selectedRoute && selectedRoute.geojson) {
+				mapRef.current.addSource("selected-route", {
+					type: "geojson",
+					data: selectedRoute.geojson
+				});
+				mapRef.current.addLayer({
+					id: "selected-route",
+					type: "line",
+					source: "selected-route",
+					layout: { "line-join": "round", "line-cap": "round" },
+					paint: { "line-color": "#800080", "line-width": 3 }
+				});
+			}
+		};
+
+		if (!mapRef.current.isStyleLoaded()) {
+			mapRef.current.once("styledata", updateSelectedRouteLayer);
+		} else {
+			updateSelectedRouteLayer();
+		}
+	}, [selectedRoute]);
 
     return (
         <div className="w-2/3 h-full rounded-lg flex items-center justify-center">
