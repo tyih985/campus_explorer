@@ -5,6 +5,7 @@ import Room from "./types/Room.tsx";
 import { SelectedRoomsContextType, SelectedRoomsContext } from "./contexts/SelectedRoomsContext.tsx";
 import RoomList from "./components/RoomList.tsx";
 import {FavouritesContext, FavouritesContextType} from "./contexts/FavouritesContext.tsx";
+import { getWalkingRoute, getRoomPairs } from "./directions";
 
 export interface Geolocation {
     lat: number,
@@ -25,6 +26,7 @@ function getUniqueLocations(rooms: Room[]): Map<string, Geolocation> {
 
 function App() {
     const [rooms, setRooms] = useState([]);
+	const [routes, setRoutes] = useState<Array<{ id: string, geojson: any }>>([]);
 
     const defaultSelected: SelectedRoomsContextType = {
         selectedRooms: [],
@@ -62,6 +64,28 @@ function App() {
 
     const uniqueRooms = useMemo(() => getUniqueLocations(rooms), [rooms]);
 
+	useEffect(() => {
+		async function fetchRoutes() {
+			if (selectedRooms.length < 2) {
+				setRoutes([]);
+				return;
+			}
+			const pairs = getRoomPairs(selectedRooms);
+			const newRoutes: Array<{ id: string, geojson: any }> = [];
+			for (const [roomA, roomB] of pairs) {
+				const origin: [number, number] = [roomA.rooms_lon, roomA.rooms_lat];
+				const destination: [number, number] = [roomB.rooms_lon, roomB.rooms_lat];
+				const geojson = await getWalkingRoute(origin, destination);
+				const id = [roomA.rooms_shortname, roomB.rooms_shortname].sort().join("-");
+				if (geojson) {
+					newRoutes.push({ id, geojson });
+				}
+			}
+			setRoutes(newRoutes);
+		}
+		fetchRoutes();
+	}, [selectedRooms]);
+
     return (
         <>
             <h1 className="text-4xl font-bold text-center mt-6">Campus Explorer</h1>
@@ -69,7 +93,7 @@ function App() {
 
                 <div className="flex justify-center items-center w-full max-w-[90%] mt-6 space-x-6 h-2/3">
                     <SelectedRoomsContext.Provider value={{ selectedRooms, setSelectedRooms }}>
-                        <MapComponent rooms={uniqueRooms}/>
+						<MapComponent rooms={uniqueRooms} routes={routes} />
                         <FavouritesContext.Provider value={{ favourites, setFavourites }}>
                             <RoomList rooms={rooms}/>
                         </FavouritesContext.Provider>
