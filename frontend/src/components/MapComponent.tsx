@@ -1,11 +1,21 @@
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import 'mapbox-gl/dist/mapbox-gl.css';
 import mapboxgl from "mapbox-gl";
+import { useSelectedRouteContext } from "../contexts/SelectedRouteContext";
 
+interface Geolocation {
+	lat: number;
+	lon: number;
+}
 
-function MapComponent ({ rooms }: any) {
+interface MapComponentProps {
+	rooms: Map<string, Geolocation>;
+}
+
+function MapComponent ({ rooms }: MapComponentProps) {
     const mapRef = useRef<mapboxgl.Map | null>(null);
     const mapContainerRef = useRef<HTMLDivElement | null>(null);
+	const { selectedRoute } = useSelectedRouteContext();
     console.log(rooms);
 
     useEffect(() => {
@@ -36,6 +46,38 @@ function MapComponent ({ rooms }: any) {
             mapRef.current.remove()
         }
     }, [rooms])
+
+	useEffect(() => {
+		if (!mapRef.current) return;
+
+		const updateSelectedRouteLayer = () => {
+			if (mapRef.current.getLayer("selected-route")) {
+				mapRef.current.removeLayer("selected-route");
+			}
+			if (mapRef.current.getSource("selected-route")) {
+				mapRef.current.removeSource("selected-route");
+			}
+			if (selectedRoute && selectedRoute.geojson) {
+				mapRef.current.addSource("selected-route", {
+					type: "geojson",
+					data: selectedRoute.geojson
+				});
+				mapRef.current.addLayer({
+					id: "selected-route",
+					type: "line",
+					source: "selected-route",
+					layout: { "line-join": "round", "line-cap": "round" },
+					paint: { "line-color": "#800080", "line-width": 3 }
+				});
+			}
+		};
+
+		if (!mapRef.current.isStyleLoaded()) {
+			mapRef.current.once("styledata", updateSelectedRouteLayer);
+		} else {
+			updateSelectedRouteLayer();
+		}
+	}, [selectedRoute]);
 
     return (
         <div className="w-2/3 h-full rounded-lg flex items-center justify-center">
