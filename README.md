@@ -1,10 +1,65 @@
-# UBC Campus Explorer Project Repository
-## Configuring your environment
-To start using this project, you need to get your development environment configured so that you can build and execute the code.
-To do this, follow these steps; the specifics of each step will vary based on your operating system:
-1. [Install git](https://git-scm.com/downloads) (v2.X). You should be able to execute `git --version` on the command line after installation is complete.
-2. [Install Node (Current)](https://nodejs.org/en/download/) (Current: v23.X), which will also install NPM (you should be able to execute `node --version` and `npm --version` on the command line).
-3. [Install Yarn](https://yarnpkg.com/en/docs/install) (1.22.X). You should be able to execute `yarn --version`.
+# UBC Campus Explorer
 
-Here is a link to our video demo: https://www.youtube.com/watch?v=YIxMDEBNB6k
+[Video Demo](https://www.youtube.com/watch?v=YIxMDEBNB6k)
 
+This project provides an interface for users to visualize different routes and walking distances between their classes at UBC. The following guide explains how to configure your environment, run the application, and load datasets.
+
+## Configuring Your Environment
+
+### Prerequisites
+
+1. Git (v2.X)  
+   - Install Git.  
+   - Verify installation:  
+     git --version
+
+2. Node.js (Current: v23.X)  
+   - Installing Node will also install NPM.  
+   - Verify installation:  
+     node --version
+     npm --version
+
+3. Yarn (v1.22.X)  
+   - Install Yarn globally.  
+   - Verify installation:  
+     yarn --version
+
+## Running the Application
+
+1. Install Dependencies (Frontend)  
+
+Navigate to the `frontend` folder and install dependencies:
+```
+    cd frontend
+    yarn install
+```
+
+2. Start the frontend development server:
+```
+npm run dev
+```
+
+3. Run the Backend  
+
+At the root of the repository, start the server:
+```
+npm run start
+```
+
+4. Add the Dataset
+
+The application requires a dataset (`campus.zip`) from the `/data` folder. Add it via HTTP PUT to the backend using Postman or curl:
+
+**Using Postman:**
+- Method: PUT  
+- URL: http://localhost:4321/dataset/:id/rooms  
+- Body: Select binary and upload `campus.zip`  
+
+**Using curl:**
+```
+    curl -X PUT \
+      --data-binary @data/campus.zip \
+      http://localhost:4321/dataset/:id/rooms
+```
+
+_Replace `:id` with a dataset identifier (e.g., campus)._
