@@ -8,25 +8,25 @@ This project provides an interface for users to visualize different routes and w
 
 ### Prerequisites
 
-1. Git (v2.X)  
-   - Install Git.  
-   - Verify installation:  
-     git --version
-
-2. Node.js (Current: v23.X)  
+1. Node.js (Current: v23.X)  
    - Installing Node will also install NPM.  
    - Verify installation:  
      node --version
      npm --version
 
-3. Yarn (v1.22.X)  
+2. Yarn (v1.22.X)  
    - Install Yarn globally.  
    - Verify installation:  
      yarn --version
 
 ## Running the Application
 
-1. Install Dependencies (Frontend)  
+1. Install Dependencies
+
+At project root, install dependencies:
+```
+    yarn install
+```
 
 Navigate to the `frontend` folder and install dependencies:
 ```
