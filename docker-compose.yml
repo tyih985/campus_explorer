@@ -1,25 +1,31 @@
+version: "3.8"
 services:
     backend:
         build:
             context: .
             dockerfile: Dockerfile
+        command: ["npm", "run", "start"]
         ports:
-            - "3000:3000"
+            - "4321:4321"
+        volumes:
+            - ./:/app
+            - /app/node_modules
         environment:
             - NODE_ENV=development
-        volumes:
-            - .:/app
-            - /app/node_modules
-        depends_on:
-            - frontend
 
     frontend:
         build:
             context: ./frontend
+            dockerfile: Dockerfile
+        command: ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
         ports:
             - "5173:5173"
-        environment:
-            - PORT=5173
         volumes:
             - ./frontend:/app
             - /app/node_modules
+        environment:
+            - NODE_ENV=development
+            - CHOKIDAR_USEPOLLING=true
+        depends_on:
+            - backend
+

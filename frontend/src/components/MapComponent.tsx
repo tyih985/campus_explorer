@@ -12,7 +12,7 @@ interface MapComponentProps {
 	rooms: Map<string, Geolocation>;
 }
 
-function MapComponent ({ rooms }: MapComponentProps) {
+function MapComponent({ rooms }: MapComponentProps) {
 	const mapRef = useRef<mapboxgl.Map | null>(null);
 	const mapContainerRef = useRef<HTMLDivElement | null>(null);
 	const { selectedRoute } = useSelectedRouteContext();
@@ -21,55 +21,54 @@ function MapComponent ({ rooms }: MapComponentProps) {
 	useEffect(() => {
 		if (!mapContainerRef.current) return;
 
-		mapboxgl.accessToken = 'pk.eyJ1IjoiYXJpcmkiLCJhIjoiY204bDg0aTRvMDJyajJpb2h6MjR2aGpjMyJ9.M4NVyZ2FrkCZJhkHhO0pXQ'
+		mapboxgl.accessToken = 'pk.eyJ1IjoiYXJpcmkiLCJhIjoiY204bDg0aTRvMDJyajJpb2h6MjR2aGpjMyJ9.M4NVyZ2FrkCZJhkHhO0pXQ';
 		mapRef.current = new mapboxgl.Map({
 			container: mapContainerRef.current,
-			style: "mapbox://styles/mapbox/streets-v11",
+			style: "mapbox://styles/mapbox/streets-v11", // Add map style
 			center: [-123.2504, 49.2612],
 			zoom: 15
 		});
 
-		const map = mapRef.current;
-		if (!map) return;
+		if (mapRef.current) {
+			for (let value of rooms.values()) {
+				new mapboxgl.Marker()
+					.setLngLat([value.lon, value.lat])
+					.addTo(mapRef.current);
+			}
 
-		for (let value of rooms.values()) {
-			new mapboxgl.Marker()
-				.setLngLat([value.lon, value.lat])
-				.addTo(map);
-		}
-
-		for (let [key, value] of rooms) {
-			new mapboxgl.Marker()
-				.setLngLat([value.lon, value.lat])
-				.setPopup(new mapboxgl.Popup({ className:"text-gray-700 text-2-xl" }).setHTML(`<p>${key}</p>`))
-				.addTo(map);
+			for (let [key, value] of rooms) {
+				new mapboxgl.Marker()
+					.setLngLat([value.lon, value.lat])
+					.setPopup(new mapboxgl.Popup({ className: "text-gray-700 text-2-xl" }).setHTML(`<p>${key}</p>`))
+					.addTo(mapRef.current);
+			}
 		}
 
 		return () => {
 			if (mapRef.current) {
 				mapRef.current.remove();
-				mapRef.current = null;
 			}
-		}
-	}, [rooms])
+		};
+	}, [rooms]);
 
 	useEffect(() => {
-		const map = mapRef.current;
-		if (!map) return;
+		if (!mapRef.current) return;
 
 		const updateSelectedRouteLayer = () => {
-			if (map.getLayer("selected-route")) {
-				map.removeLayer("selected-route");
+			if (!mapRef.current) return;
+
+			if (mapRef.current.getLayer("selected-route")) {
+				mapRef.current.removeLayer("selected-route");
 			}
-			if (map.getSource("selected-route")) {
-				map.removeSource("selected-route");
+			if (mapRef.current.getSource("selected-route")) {
+				mapRef.current.removeSource("selected-route");
 			}
 			if (selectedRoute && selectedRoute.geojson) {
-				map.addSource("selected-route", {
+				mapRef.current.addSource("selected-route", {
 					type: "geojson",
 					data: selectedRoute.geojson
 				});
-				map.addLayer({
+				mapRef.current.addLayer({
 					id: "selected-route",
 					type: "line",
 					source: "selected-route",
@@ -79,8 +78,8 @@ function MapComponent ({ rooms }: MapComponentProps) {
 			}
 		};
 
-		if (!map.isStyleLoaded()) {
-			map.once("styledata", updateSelectedRouteLayer);
+		if (mapRef.current && !mapRef.current.isStyleLoaded()) {
+			mapRef.current.once("styledata", updateSelectedRouteLayer);
 		} else {
 			updateSelectedRouteLayer();
 		}
@@ -88,7 +87,7 @@ function MapComponent ({ rooms }: MapComponentProps) {
 
 	return (
 		<div className="w-2/3 h-full rounded-lg flex items-center justify-center">
-			<div ref={mapContainerRef} style={{width: "100%", height: "100%"}}/>
+			<div ref={mapContainerRef} style={{ width: "100%", height: "100%" }} />
 		</div>
 	);
 }
