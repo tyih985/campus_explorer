@@ -14,24 +14,19 @@ This project provides an interface for users to visualize different routes and w
      node --version
      npm --version
 
-2. Yarn (v1.22.X)  
-   - Install Yarn globally.  
-   - Verify installation:  
-     yarn --version
-
 ## Running the Application
 
 1. Install Dependencies
 
 At project root, install dependencies:
 ```
-    yarn install
+    npm install
 ```
 
 Navigate to the `frontend` folder and install dependencies:
 ```
     cd frontend
-    yarn install
+    npm install
 ```
 
 2. Start the frontend development server:
