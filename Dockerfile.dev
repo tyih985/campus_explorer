@@ -1,9 +1,9 @@
-FROM node:alpine
+FROM node:23-alpine
 WORKDIR /app
 
+# copy only package.json + lockfile first (better cache)
 COPY package*.json ./
 COPY . .
 RUN npm install
-
 EXPOSE 4321
 CMD ["npm", "run", "start"]

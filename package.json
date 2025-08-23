@@ -44,7 +44,6 @@
 		"typescript": "5.7.2"
 	},
 	"scripts": {
-		"postinstall": "node ./scripts/postinstall.js",
 		"cover": "nyc --reporter text --reporter html yarn run test",
 		"build": "tsc && yarn prettier:check && yarn lint:check",
 		"test": "mocha --require ts-node/register --timeout 10000 --extension .spec.ts --recursive test",
