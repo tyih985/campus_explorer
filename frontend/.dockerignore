@@ -1,2 +1,13 @@
 node_modules
 dist
+.gitignore
+.gitkeep
+Dockerfile.dev
+index.html
+postcss.config.js
+README.md
+tailwind.config.js
+tsconfig.app.json
+tsconfig.json
+tsconfig.node.json
+vite.config.ts
