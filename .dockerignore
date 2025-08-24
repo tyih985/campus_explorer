@@ -9,3 +9,4 @@ frontend/dist
 *.log
 test
 Dockerfile.dev
+Dockerfile.prod
