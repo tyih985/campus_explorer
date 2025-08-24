@@ -17,6 +17,7 @@
     "react-map-gl": "^8.0.1"
   },
   "devDependencies": {
+    "rollup": "^3.0.0",
     "@eslint/js": "^9.21.0",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",

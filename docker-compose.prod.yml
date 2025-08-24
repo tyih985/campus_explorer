@@ -1,0 +1,33 @@
+version: "3.8"
+
+services:
+    backend:
+        build:
+            context: .
+            dockerfile: Dockerfile.prod
+        environment:
+            - NODE_ENV=production
+            - PORT=4321
+        # expose inside the docker network, map to host if you need direct access
+        ports:
+            - "4321:4321"
+        restart: unless-stopped
+        networks:
+            - webnet
+
+    frontend:
+        build:
+            context: ./frontend
+            dockerfile: Dockerfile.prod
+        # serve frontend to host on port 80 (change to 8080 if you prefer)
+        ports:
+            - "80:80"
+        depends_on:
+            - backend
+        restart: unless-stopped
+        networks:
+            - webnet
+
+networks:
+    webnet:
+        driver: bridge
