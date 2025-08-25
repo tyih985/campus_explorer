@@ -1,0 +1,7 @@
+﻿node_modules
+dist
+.vscode
+.idea
+.DS_Store
+.env
+*.log

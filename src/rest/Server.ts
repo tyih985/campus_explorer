@@ -93,6 +93,9 @@ export default class Server {
 		this.express.get("/echo/:msg", Server.echo);
 
 		// TODO: your other endpoints should go here
+		this.express.get("/", (_req, res) => {
+			res.status(200).send("Server is up and running.");
+		});
 		this.express.put("/dataset/:id/:kind", Put.addDataset);
 		this.express.delete("/dataset/:id", Delete.removeDataset);
 		this.express.post("/query", Post.performQuery);

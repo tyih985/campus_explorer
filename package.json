@@ -31,7 +31,7 @@
 		"@typescript-eslint/eslint-plugin": "8.19.0",
 		"@typescript-eslint/parser": "8.19.0",
 		"@ubccpsc310/eslint-plugin-descriptive": "^2.1.1",
-		"chai": "4.3.4",
+		"chai": "^4.3.4",
 		"chai-as-promised": "7.1.1",
 		"chai-http": "4.4.0",
 		"eslint": "8.57.0",
@@ -40,11 +40,10 @@
 		"nyc": "17.1.0",
 		"prettier": "3.4.2",
 		"supertest": "7.0.0",
-		"ts-node": "10.9.2",
+		"ts-node": "^10.9.2",
 		"typescript": "5.7.2"
 	},
 	"scripts": {
-		"postinstall": "git config core.hooksPath .githooks",
 		"cover": "nyc --reporter text --reporter html yarn run test",
 		"build": "tsc && yarn prettier:check && yarn lint:check",
 		"test": "mocha --require ts-node/register --timeout 10000 --extension .spec.ts --recursive test",

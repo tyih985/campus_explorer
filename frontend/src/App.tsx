@@ -50,19 +50,32 @@ function App() {
                 COLUMNS: ["rooms_shortname", "rooms_number", "rooms_fullname", "rooms_lat", "rooms_lon", "rooms_address", "rooms_seats"]
             }
         }
-        fetch("http://localhost:4321/query", {
-            method: "POST",
-            headers: {
-                "Content-type": "application/json",
-            },
-            body: JSON.stringify(query)
-        })
-            .then(response => response.json())
-            .then(json =>  {
-                console.log(json.result);
-                setRooms(json.result);
-            })
-            .catch(error => console.log(error));
+		fetch("/api/query", {
+			method: "POST",
+			headers: { "Content-type": "application/json" },
+			body: JSON.stringify(query)
+		})
+			.then(async (response) => {
+				if (!response.ok) {
+					const text = await response.text().catch(() => "");
+					console.error("Query failed:", response.status, response.statusText, text);
+					return null;
+				}
+				return response.json();
+			})
+			.then(json => {
+				if (json && Array.isArray(json.result)) {
+					setRooms(json.result);
+				} else {
+					// fallback so components don't crash
+					setRooms([]);
+					console.warn("Query returned no result field or result is not an array", json);
+				}
+			})
+			.catch(error => {
+				console.error("Fetch error:", error);
+				setRooms([]);
+			});
     }, []);
 
     const uniqueRooms = useMemo(() => getUniqueLocations(rooms), [rooms]);
