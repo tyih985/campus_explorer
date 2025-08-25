@@ -1,0 +1,31 @@
+version: "3.8"
+
+services:
+    backend:
+        build:
+            context: .
+            dockerfile: Dockerfile.prod
+        environment:
+            - NODE_ENV=production
+            - PORT=4321
+        ports:
+            - "4321:4321"
+        restart: unless-stopped
+        networks:
+            - webnet
+
+    frontend:
+        build:
+            context: ./frontend
+            dockerfile: Dockerfile.prod
+        ports:
+            - "8080:80"
+        depends_on:
+            - backend
+        restart: unless-stopped
+        networks:
+            - webnet
+
+networks:
+    webnet:
+        driver: bridge

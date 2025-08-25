@@ -1,0 +1,18 @@
+﻿FROM node:24-bullseye-slim AS builder
+WORKDIR /app
+
+# install npm and dependencies, including ts-node
+RUN npm install -g npm@11.5.2
+COPY package*.json ./
+RUN npm install
+
+# copy everything and build the project
+COPY . .
+RUN npm run build
+
+FROM nginx:stable-alpine AS runner
+COPY --from=builder /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 8080
+CMD ["nginx", "-g", "daemon off;"]
