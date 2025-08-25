@@ -2,23 +2,20 @@
 FROM node:23-bullseye-slim AS builder
 WORKDIR /app
 
-# Install all deps (including dev) so tsc and any runtime dev-required packages are available
+# install all deps (including dev) so tsc and any runtime dev-required packages are available
 COPY package*.json ./
 RUN npm ci
 
-# Copy source and build
+# copy source and build
 COPY . .
 RUN npx tsc
 
-# Final runtime image
+# final runtime image
 FROM node:23-bullseye-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
-# Copy package.json (so npm scripts / metadata exist if needed)
-COPY package*.json ./
-
-# Copy compiled app, data folder, and node_modules from builder
+# copy compiled app, data folder, and node_modules from builder
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/data ./data
 COPY --from=builder /app/node_modules ./node_modules
