@@ -11,7 +11,6 @@ pipeline {
       steps {
         checkout scm
         script {
-          // Set environment variables so they are available in later stages
           env.COMMIT = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
           env.IMAGE_BACKEND = "ghcr.io/${env.GITHUB_USER}/${env.REPO}-backend:sha-${env.COMMIT}"
           env.IMAGE_FRONTEND = "ghcr.io/${env.GITHUB_USER}/${env.REPO}-frontend:sha-${env.COMMIT}"
@@ -24,9 +23,7 @@ pipeline {
 
     stage('Verify docker available') {
       steps {
-        // sanity check
         sh 'docker --version'
-        sh 'echo "Docker is available; proceeding to build."'
       }
     }
 
@@ -54,7 +51,38 @@ pipeline {
         }
       }
     }
-  }
+
+    stage('Deploy to k8s') {
+      steps {
+        // secret-file credential will create a temp file on agent; we mount it into the kubectl container
+        withCredentials([file(credentialsId: 'jenkins-kubeconfig-file', variable: 'KUBECONFIG_FILE')]) {
+          script {
+            echo "Deploying to k8s using kubeconfig at ${env.KUBECONFIG_FILE}"
+
+            // update images
+            sh """
+              docker run --rm --network=minikube -v "${KUBECONFIG_FILE}:/root/.kube/config:ro" bitnami/kubectl:latest \
+                --kubeconfig=/root/.kube/config set image deployment/backend backend=${IMAGE_BACKEND} --namespace=default
+            """
+            sh """
+              docker run --rm --network=minikube -v "${KUBECONFIG_FILE}:/root/.kube/config:ro" bitnami/kubectl:latest \
+                --kubeconfig=/root/.kube/config set image deployment/frontend frontend=${IMAGE_FRONTEND} --namespace=default
+            """
+
+            // wait for rollouts (with timeouts)
+            sh """
+              docker run --rm --network=minikube -v "${KUBECONFIG_FILE}:/root/.kube/config:ro" bitnami/kubectl:latest \
+                --kubeconfig=/root/.kube/config rollout status deployment/backend --namespace=default --timeout=180s
+            """
+            sh """
+              docker run --rm --network=minikube -v "${KUBECONFIG_FILE}:/root/.kube/config:ro" bitnami/kubectl:latest \
+                --kubeconfig=/root/.kube/config rollout status deployment/frontend --namespace=default --timeout=180s
+            """
+          }
+        }
+      }
+    }
+  } // end stages
 
   post {
     always {
