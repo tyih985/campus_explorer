@@ -52,30 +52,25 @@ pipeline {
             }
         }
 
-        stage('Deploy to k8s') {
-            steps {
-                withCredentials([file(credentialsId: 'jenkins-kubeconfig-file', variable: 'KUBECONFIG_FILE')]) {
-                    script {
-                        sh """
-                          # copy and chmod so kubectl container can read it
-                          cp ${KUBECONFIG_FILE} kubeconfig
-                          chmod 644 kubeconfig
+stage('Deploy to k8s') {
+  steps {
+    withCredentials([file(credentialsId: 'jenkins-kubeconfig-file', variable: 'KUBECONFIG_FILE')]) {
+      sh """
+        cp "\${KUBECONFIG_FILE}" kubeconfig
+        sed -i '1s/^\\\\xEF\\\\xBB\\\\xBF//' kubeconfig || true
+        chmod 644 kubeconfig || true
 
-                          docker run --rm --network=minikube \
-                            -v \$(pwd)/kubeconfig:/root/.kube/config:ro \
-                            bitnami/kubectl:latest \
-                            --kubeconfig=/root/.kube/config set image deployment/backend backend=${IMAGE_BACKEND} --namespace=default
-
-                          docker run --rm --network=minikube \
-                            -v \$(pwd)/kubeconfig:/root/.kube/config:ro \
-                            bitnami/kubectl:latest \
-                            --kubeconfig=/root/.kube/config set image deployment/frontend frontend=${IMAGE_FRONTEND} --namespace=default
-                        """
-                    }
-                }
-            }
-        }
+        # pipe the kubeconfig into the kubectl container as root (avoids mount permission issues)
+        docker run --rm --network=minikube -i --user root --entrypoint sh bitnami/kubectl:latest -c '
+          mkdir -p /root/.kube && cat > /root/.kube/config && chmod 644 /root/.kube/config && \
+          kubectl --kubeconfig=/root/.kube/config -n default set image deployment/backend backend=${IMAGE_BACKEND} && \
+          kubectl --kubeconfig=/root/.kube/config -n default set image deployment/frontend frontend=${IMAGE_FRONTEND}
+        ' < kubeconfig
+      """
     }
+  }
+}
+
 
     post {
         always {
