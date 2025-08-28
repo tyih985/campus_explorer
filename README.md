@@ -2,7 +2,7 @@
 
 [Video Demo](https://www.youtube.com/watch?v=YIxMDEBNB6k)
 
-UBC Campus Explorer helps visualize routes and walking distances between classes on campus. This README explains how to run the project locally, run via Docker Compose, and deploy using Kubernetes + Jenkins CI/CD.
+UBC Campus Explorer helps visualize routes and walking distances between classes on campus. This README explains how to run the project three different ways: locally, via Docker Compose, or deploying using Kubernetes + Jenkins CI/CD.
 
 ---
 
