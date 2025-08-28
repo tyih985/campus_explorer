@@ -12,7 +12,7 @@ UBC Campus Explorer helps visualize routes and walking distances between classes
 - [Docker Compose (dev vs prod)](#docker-compose-dev-vs-prod)  
 - [Build and Push Docker Images (GHCR)](#build-and-push-docker-images-ghcr)  
 - [Kubernetes Deployment (minikube)](#kubernetes-deployment-minikube)  
-- [Jenkins CI/CD Setup](#jenkins-cicd-setup-step-by-step)  
+- [Jenkins CI/CD Setup](#jenkins-cicd-setup)  
 
 ---
 
@@ -61,14 +61,12 @@ The application requires a dataset (`campus.zip`) from the `/data` folder. Add i
 
 **Using Postman:**
 - Method: PUT  
-- URL: http://localhost:4321/dataset/:id/rooms  
+- URL: `http://localhost:4321/dataset/:id/rooms` 
 - Body: Select binary and upload `campus.zip`  
 
 **Using curl:**
 ```
-curl -X PUT \
-  --data-binary @data/campus.zip \
-  http://localhost:4321/dataset/:id/rooms
+curl -X PUT --data-binary @data/campus.zip http://localhost:4321/dataset/:id/rooms
 ```
 
 _Replace `:id` with a dataset identifier (e.g., rooms)._
@@ -123,7 +121,7 @@ docker push ghcr.io/<GHCR_USER>/campus_explorer-backend:latest
 
 ## Kubernetes Deployment (minikube)
 This section assumes you are using minikube locally and want the Jenkins pipeline to talk to your minikube cluster.
-- Important: Do not commit `jenkins-kubeconfig` or any file containing the token to source control. Keep it only in Jenkins Credentials (Secret file).
+- IMPORTANT: Do not commit `jenkins-kubeconfig` or any file containing the token to source control. Keep it only in Jenkins Credentials (Secret file).
 
 1. Start minikube
 ```
@@ -162,7 +160,7 @@ bash:
 ```
 kubectl -n jenkins create token jenkins --duration=87600h
 ```
-4. Create a jenkins-kubeconfig for Jenkins (use the template in the project repo)
+4. Create a `jenkins-kubeconfig` for Jenkins (use the template in the project repo)
 ```
 apiVersion: v1
 kind: Config
@@ -184,32 +182,31 @@ users:
 ```
 - Replace `<TOKEN>` with a token generated with `kubectl -n jenkins create token jenkins --duration=87600h`
 - Replace `<MINIKUBE_IP>` with the output from `minikube ip`
-- Note: Minikube’s IP and cluster certs can change after minikube delete/recreate or host restarts. If you recreate minikube you must regenerate the kubeconfig (update <MINIKUBE_IP> and token or CA as needed)
-- insecure-skip-tls-verify: true is OK for local dev only; for reproducible setups consider embedding certificate-authority-data instead
+- NOTE: Minikube’s IP and cluster certs can change after minikube delete/recreate or host restarts. If you recreate minikube you must regenerate the kubeconfig (update <MINIKUBE_IP> and token or CA as needed)
 
 5. Upload kubeconfig to Jenkins as a Secret file
 - Jenkins → Credentials → (choose domain) → Add Credentials
 - Kind: Secret file
--  ID: jenkins-kubeconfig-file ← exact ID expected by the Jenkinsfile
-- Upload the `jenkins-kubeconfig` YAML file
+-  ID: `jenkins-kubeconfig-file` (this is exact ID expected by the Jenkinsfile)
+- Upload the `jenkins-kubeconfig` file you made
 
 6. Ensure GHCR credentials exist in Jenkins
 - Kind: Username with password
-- Username: <GHCR_USERNAME>
-- Password: <GHCR_PAT>
-- ID: ghcr-creds
+- Username: `<GHCR_USERNAME>`
+- Password: `<GHCR_PAT>`
+- ID: `ghcr-creds`
 
 ## Jenkins CI/CD Setup
 1. Create a Jenkins Pipeline job and point it at your GitHub repo. Ensure it uses the Jenkinsfile in the repo
 2. Add Jenkins Credentials:
-3. Secret file with ID jenkins-kubeconfig-file (upload the kubeconfig from above)
-4. Username+password with ID ghcr-creds (GHCR user & PAT)
+	- Secret file with ID `jenkins-kubeconfig-file` (upload the kubeconfig from above)
+ 	- Username+password with ID `ghcr-creds` (GHCR user & PAT)
 5. Ensure the Jenkins node/agent has Docker CLI and can run containers and reach the minikube Docker network
 
-(Optional) Add a GitHub webhook:
-- GitHub repo → Settings → Webhooks → add http://<JENKINS_HOST>/github-webhook/
-- In Jenkins job: enable GitHub hook trigger for GITScm polling.
-- This gives near-instant CI/CD. Otherwise Poll SCM (cron) also works.
+- (Optional) Add a GitHub webhook:
+	- GitHub repo → Settings → Webhooks → add http://<JENKINS_HOST>/github-webhook/
+	- In Jenkins job: enable GitHub hook trigger for GITScm polling.
+	- This gives near-instant CI/CD. Otherwise Poll SCM (cron) also works.
 
 6. Run the job. Check the Validate kubeconfig (quick test) stage output — it should print cluster-info and pods from inside the kubectl container. If that passes, the Deploy stage will run kubectl set image on your backend and frontend Deployments.
 
