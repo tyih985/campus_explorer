@@ -1,5 +1,7 @@
 # UBC Campus Explorer
 
+<img width="2542" height="1193" alt="Screenshot 2025-09-08 010043" src="https://github.com/user-attachments/assets/feab1a25-dea7-4dbb-bb5b-af1d2782564a" />
+
 [Video Demo](https://www.youtube.com/watch?v=YIxMDEBNB6k)
 
 UBC Campus Explorer helps visualize routes and walking distances between classes on campus. This README explains how to run the project three different ways: locally, via Docker Compose, or deploying using Kubernetes + Jenkins CI/CD.
@@ -33,6 +35,8 @@ npm --version
 ---
 
 ## Run Locally (development)
+
+**IMPORTANT:** to run locally (without Docker Compose), you must change the `target` in `backend\vite.config.ts` from `http://backend:4321` to `http://localhost:4321`.
 
 1. Clone the repo and install dependencies:
 ```
