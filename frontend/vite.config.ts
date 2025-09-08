@@ -11,7 +11,7 @@ export default defineConfig({
 		proxy: {
 			// mirrors the nginx behavior in prod: /api/query -> /query on backend
 			'/api': {
-				target: 'http://backend:4321',
+				target: 'http://backend:4321', // CHANGE TO 'http://localhost:4321' IF RUNNING LOCAL DEV INSTEAD OF DOCKER COMPOSE
 				changeOrigin: true,
 				secure: false,
 				rewrite: (path) => path.replace(/^\/api/, '')
